@@ -209,9 +209,8 @@ export default function Home() {
     if (session) await cargarPerfil(session.user.id);
   };
 
-  // Botón Limpiar (Restablecer sorteo a cero)
-  const limpiarSorteo = async () => {
-    if (!confirm('⚠️ ¿Estás seguro de limpiar el sorteo? Esto borrará todas las asignaciones y dejará el evento sin sortear.')) {
+  const restablecerSorteo = async () => {
+    if (!confirm('⚠️ ¿Estás seguro de restablecer el sorteo? Esto borrará todas las asignaciones actuales.')) {
       return;
     }
 
@@ -222,7 +221,7 @@ export default function Home() {
         .neq('id', '00000000-0000-0000-0000-000000000000');
 
       if (error) {
-        alert('Error al limpiar el sorteo: ' + error.message);
+        alert('Error al restablecer el sorteo: ' + error.message);
         return;
       }
 
@@ -236,9 +235,9 @@ export default function Home() {
       await cargarParticipantes();
       if (session) await cargarPerfil(session.user.id);
 
-      alert('🔄 ¡Sorteo limpiado con éxito! Ahora está pendiente.');
+      alert('🔄 ¡El sorteo ha sido restablecido con éxito!');
     } catch (err) {
-      alert('Error inesperado al limpiar el sorteo.');
+      alert('Error inesperado al restablecer el sorteo.');
     }
   };
 
@@ -299,19 +298,15 @@ export default function Home() {
       if (todos) {
         setParticipantes(todos);
         const yaSorteado = todos.some(p => p.amigo_secreto_id);
-        if (yaSorteado) {
-          setSorteoRealizado(true);
-          if (data.amigo_secreto_id) {
-            const amigo = todos.find(p => p.id === data.amigo_secreto_id);
-            if (amigo) setAmigoSecretoInfo(amigo);
-          }
-          const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
-          if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
-        } else {
-          setSorteoRealizado(false);
-          setAmigoSecretoInfo(null);
-          setPersonaQueMeRegalaInfo(null);
+        if (yaSorteado) setSorteoRealizado(true);
+
+        if (data.amigo_secreto_id) {
+          const amigo = todos.find(p => p.id === data.amigo_secreto_id);
+          if (amigo) setAmigoSecretoInfo(amigo);
         }
+
+        const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
+        if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
       }
     }
   };
@@ -321,7 +316,7 @@ export default function Home() {
     if (data) {
       setParticipantes(data);
       const yaSorteado = data.some(p => p.amigo_secreto_id);
-      setSorteoRealizado(yaSorteado);
+      if (yaSorteado) setSorteoRealizado(true);
     }
   };
 
@@ -657,10 +652,11 @@ export default function Home() {
     });
   };
 
-  // Cálculo de la barra de porcentaje de regalos subidos
-  const totalParticipantes = participantes.length;
-  const participantesConDeseos = participantes.filter(p => p.deseos && p.deseos.some(d => d !== null && (d.imagen || d.detalles || d.url))).length;
-  const porcentajeRegalos = totalParticipantes > 0 ? Math.round((participantesConDeseos / totalParticipantes) * 100) : 0;
+  const calcularPorcentajeUsuario = (deseosPart) => {
+    if (!deseosPart || !Array.isArray(deseosPart)) return 0;
+    const subidos = deseosPart.filter(d => d !== null && (d.imagen || d.detalles || d.url)).length;
+    return Math.round((subidos / 3) * 100);
+  };
 
   if (!session) {
     return (
@@ -748,16 +744,18 @@ export default function Home() {
               </>
             )}
 
-            {/* Checkbox Recordar Cuenta */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}>
+            {/* Checkbox Recordar Cuenta con alineación armoniosa */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', fontSize: '0.75rem', color: '#4b5563', marginTop: '0.25rem' }}>
               <input
                 type="checkbox"
                 id="recordar"
                 checked={recordarCuenta}
                 onChange={(e) => setRecordarCuenta(e.target.checked)}
-                style={{ cursor: 'pointer' }}
+                style={{ width: '1rem', height: '1rem', accentColor: '#8B0000', cursor: 'pointer', margin: 0 }}
               />
-              <label htmlFor="recordar" style={{ cursor: 'pointer' }}>Recordar mi cuenta en este navegador</label>
+              <label htmlFor="recordar" style={{ cursor: 'pointer', lineHeight: '1.25rem', userSelect: 'none' }}>
+                Recordar mi cuenta en este navegador
+              </label>
             </div>
 
             <button
@@ -827,17 +825,6 @@ export default function Home() {
       {esAdmin && modoAdmin ? (
         <div style={{ width: '100%', maxWidth: '42rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Barra de Porcentaje de Regalos Subidos */}
-          <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem' }}>📊 Progreso de Deseos de los Participantes</h2>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.75rem' }}>
-              {participantesConDeseos} de {totalParticipantes} participantes ya han subido sus regalos ({porcentajeRegalos}% completado).
-            </p>
-            <div style={{ width: '100%', height: '1rem', backgroundColor: '#f3f4f6', borderRadius: '9999px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-              <div style={{ width: `${porcentajeRegalos}%`, height: '100%', backgroundColor: '#2E7D32', transition: 'width 0.3s ease' }}></div>
-            </div>
-          </section>
-
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '1rem' }}>⚙️ Configuración del Intercambio</h2>
             
@@ -876,12 +863,11 @@ export default function Home() {
             </form>
           </section>
 
-          {/* Botones Separados de Sortear y Limpiar */}
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.25rem' }}>🎲 Estado del Sorteo</h2>
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
-                {sorteoRealizado ? 'El sorteo se encuentra realizado.' : 'El sorteo está pendiente.'}
+                {sorteoRealizado ? 'El sorteo se ha realizado con éxito.' : 'El sorteo está pendiente o se ejecutará al llegar la fecha.'}
               </p>
 
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -890,16 +876,18 @@ export default function Home() {
                   onClick={ejecutarSorteoManual}
                   style={{ backgroundColor: '#2E7D32', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
                 >
-                  🎲 Sortear (Asignar)
+                  {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Iniciar Sorteo Ahora'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={limpiarSorteo}
-                  style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
-                >
-                  🧹 Limpiar (Sin Sorteo)
-                </button>
+                {sorteoRealizado && (
+                  <button
+                    type="button"
+                    onClick={restablecerSorteo}
+                    style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+                  >
+                    🗑️ Restablecer Sorteo
+                  </button>
+                )}
               </div>
             </div>
 
@@ -933,7 +921,7 @@ export default function Home() {
             )}
           </section>
 
-          {/* Tabla de Participantes con Icono Ojo (👁️) */}
+          {/* Tabla de Participantes con Estado y Porcentaje */}
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000' }}>👥 Participantes Registrados ({participantes.length})</h2>
@@ -955,40 +943,58 @@ export default function Home() {
                     <tr style={{ borderBottom: '1px solid #f3f4f6', color: '#9ca3af', textTransform: 'uppercase', fontSize: '0.625rem' }}>
                       <th style={{ padding: '0.5rem 0' }}>Nombre</th>
                       <th style={{ padding: '0.5rem 0' }}>Celular</th>
+                      <th style={{ padding: '0.5rem 0' }}>Estado / Deseos</th>
                       <th style={{ padding: '0.5rem 0', textAlign: 'center' }}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {participantes.map((part) => (
-                      <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
-                        <td style={{ padding: '0.75rem 0', fontWeight: 600, color: '#1f2937' }}>
-                          {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
-                        </td>
-                        <td style={{ padding: '0.75rem 0', color: '#4b5563' }}>{part.celular}</td>
-                        <td style={{ padding: '0.75rem 0', textAlign: 'center', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                          {/* Botón Ojo (Ver Info Completa) */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setParticipanteSeleccionadoInfo(part);
-                              setModalVerParticipanteAbierto(true);
-                            }}
-                            style={{ backgroundColor: '#FEF9C3', color: '#854D0E', border: '1px solid #FACC15', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
-                            title="Ver toda su información y deseos"
-                          >
-                            👁️ Ver
-                          </button>
+                    {participantes.map((part) => {
+                      const porcentaje = calcularPorcentajeUsuario(part.deseos);
+                      let faltaTexto = 'Completado 🎉';
+                      if (porcentaje === 0) faltaTexto = 'Faltan 3 deseos';
+                      else if (porcentaje === 33) faltaTexto = 'Faltan 2 deseos';
+                      else if (porcentaje === 67) falta 'Falta 1 deseo';
 
-                          <button
-                            type="button"
-                            onClick={() => abrirAdminEdit(part)}
-                            style={{ backgroundColor: '#FAF6F0', color: '#8B0000', border: '1px solid #D4AF37', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
-                          >
-                            ✏️ Editar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                      return (
+                        <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
+                          <td style={{ padding: '0.75rem 0', fontWeight: 600, color: '#1f2937' }}>
+                            {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
+                          </td>
+                          <td style={{ padding: '0.75rem 0', color: '#4b5563' }}>{part.celular}</td>
+                          <td style={{ padding: '0.75rem 0' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <span style={{ fontWeight: 'bold', color: porcentaje === 100 ? '#2E7D32' : '#D4AF37' }}>
+                                {porcentaje}% ({faltaTexto})
+                              </span>
+                              <div style={{ width: '5rem', height: '0.375rem', backgroundColor: '#f3f4f6', borderRadius: '9999px', overflow: 'hidden' }}>
+                                <div style={{ width: `${porcentaje}%`, height: '100%', backgroundColor: porcentaje === 100 ? '#2E7D32' : '#D4AF37' }}></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '0.75rem 0', textAlign: 'center', display: 'flex', gap: '0.375rem', justifyContent: 'center', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setParticipanteSeleccionadoInfo(part);
+                                setModalVerParticipanteAbierto(true);
+                              }}
+                              style={{ backgroundColor: '#FEF9C3', color: '#854D0E', border: '1px solid #FACC15', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
+                              title="Ver información y deseos"
+                            >
+                              👁️ Ver
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => abrirAdminEdit(part)}
+                              style={{ backgroundColor: '#FAF6F0', color: '#8B0000', border: '1px solid #D4AF37', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
+                            >
+                              ✏️ Editar
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1220,7 +1226,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Modal para ver info completa del participante (Icono Ojo Admin) */}
       {modalVerParticipanteAbierto && participanteSeleccionadoInfo && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 60 }}>
           <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '30rem', width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
@@ -1449,7 +1454,7 @@ export default function Home() {
                       <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>Aquí recibirás mensajes de la persona secreta que te va a regalar.</p>
                     ) : (
                       mensajesDB.filter(m => 
-                        (m.remitente_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
+                        (m.remitnet_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
                         (m.remitente_id === personaQueMeRegalaInfo.id && m.destinatario_id === session.user.id)
                       ).map((msg, idx) => {
                         const esmio = msg.remitente_id === session.user.id;

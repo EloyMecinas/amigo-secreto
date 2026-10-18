@@ -35,6 +35,7 @@ export default function Home() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [nombre, setNombre] = useState('');
   const [celular, setCelular] = useState('');
+  const [recordarCuenta, setRecordarCuenta] = useState(false);
   const [authError, setAuthError] = useState('');
 
   // Modal Regalos
@@ -47,6 +48,10 @@ export default function Home() {
 
   // Modal Ampliar Imagen (Zoom)
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
+
+  // Modal Ver Detalle de Participante (Icono Ojo Admin)
+  const [modalVerParticipanteAbierto, setModalVerParticipanteAbierto] = useState(false);
+  const [participanteSeleccionadoInfo, setParticipanteSeleccionadoInfo] = useState(null);
 
   // Cajita Sorpresa Amigo Secreto
   const [cajaAbierta, setCajaAbierta] = useState(false);
@@ -75,8 +80,10 @@ export default function Home() {
   const [mensajesDB, setMensajesDB] = useState([]);
 
   const limpiarFormulario = () => {
-    setEmail('');
-    setPassword('');
+    if (!recordarCuenta) {
+      setEmail('');
+      setPassword('');
+    }
     setConfirmPassword('');
     setNombre('');
     setCelular('');
@@ -92,6 +99,12 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const recordarGuardado = localStorage.getItem('amigo_secreto_email');
+    if (recordarGuardado) {
+      setEmail(recordarGuardado);
+      setRecordarCuenta(true);
+    }
+
     const cargarTodo = async () => {
       await cargarConfiguracionGlobal();
 
@@ -196,8 +209,9 @@ export default function Home() {
     if (session) await cargarPerfil(session.user.id);
   };
 
-  const restablecerSorteo = async () => {
-    if (!confirm('⚠️ ¿Estás seguro de restablecer el sorteo? Esto borrará todas las asignaciones actuales y los participantes tendrán que sortear de nuevo.')) {
+  // Botón Limpiar (Restablecer sorteo a cero)
+  const limpiarSorteo = async () => {
+    if (!confirm('⚠️ ¿Estás seguro de limpiar el sorteo? Esto borrará todas las asignaciones y dejará el evento sin sortear.')) {
       return;
     }
 
@@ -208,7 +222,7 @@ export default function Home() {
         .neq('id', '00000000-0000-0000-0000-000000000000');
 
       if (error) {
-        alert('Error al restablecer el sorteo: ' + error.message);
+        alert('Error al limpiar el sorteo: ' + error.message);
         return;
       }
 
@@ -222,9 +236,9 @@ export default function Home() {
       await cargarParticipantes();
       if (session) await cargarPerfil(session.user.id);
 
-      alert('🔄 ¡El sorteo ha sido restablecido con éxito! Ahora aparece como pendiente.');
+      alert('🔄 ¡Sorteo limpiado con éxito! Ahora está pendiente.');
     } catch (err) {
-      alert('Error inesperado al restablecer el sorteo.');
+      alert('Error inesperado al limpiar el sorteo.');
     }
   };
 
@@ -285,15 +299,19 @@ export default function Home() {
       if (todos) {
         setParticipantes(todos);
         const yaSorteado = todos.some(p => p.amigo_secreto_id);
-        if (yaSorteado) setSorteoRealizado(true);
-
-        if (data.amigo_secreto_id) {
-          const amigo = todos.find(p => p.id === data.amigo_secreto_id);
-          if (amigo) setAmigoSecretoInfo(amigo);
+        if (yaSorteado) {
+          setSorteoRealizado(true);
+          if (data.amigo_secreto_id) {
+            const amigo = todos.find(p => p.id === data.amigo_secreto_id);
+            if (amigo) setAmigoSecretoInfo(amigo);
+          }
+          const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
+          if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
+        } else {
+          setSorteoRealizado(false);
+          setAmigoSecretoInfo(null);
+          setPersonaQueMeRegalaInfo(null);
         }
-
-        const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
-        if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
       }
     }
   };
@@ -303,7 +321,7 @@ export default function Home() {
     if (data) {
       setParticipantes(data);
       const yaSorteado = data.some(p => p.amigo_secreto_id);
-      if (yaSorteado) setSorteoRealizado(true);
+      setSorteoRealizado(yaSorteado);
     }
   };
 
@@ -338,6 +356,12 @@ export default function Home() {
     e.preventDefault();
     setAuthError('');
 
+    if (recordarCuenta) {
+      localStorage.setItem('amigo_secreto_email', email);
+    } else {
+      localStorage.removeItem('amigo_secreto_email');
+    }
+
     if (esRegistro) {
       if (!celular || celular.trim() === '') {
         setAuthError('El número de celular es obligatorio.');
@@ -366,12 +390,11 @@ export default function Home() {
         });
 
         if (errorSignIn) {
-          setAuthError('Error al autenticar sesión tras el registro: ' + errorSignIn.message);
+          setAuthError('Error al autenticar sesión: ' + errorSignIn.message);
           return;
         }
 
         const userId = signInData?.user?.id;
-
         if (!userId) {
           setAuthError('No se pudo validar el ID del usuario.');
           return;
@@ -391,17 +414,17 @@ export default function Home() {
           ]);
 
         if (profileError) {
-          setAuthError('Error al guardar en tabla perfiles: ' + profileError.message);
+          setAuthError('Error al guardar en perfiles: ' + profileError.message);
           return;
         }
 
-        alert('🎉 ¡Registro exitoso! Bienvenido a Amigo Secreto.');
+        alert('🎉 ¡Registro exitoso!');
         limpiarFormulario();
         setEsRegistro(false);
         await cargarPerfil(userId);
 
       } catch (err) {
-        setAuthError('Ocurrió un error inesperado al procesar el registro.');
+        setAuthError('Ocurrió un error inesperado al registrarse.');
       }
     } else {
       const { error: errorSignIn } = await supabase.auth.signInWithPassword({
@@ -423,11 +446,7 @@ export default function Home() {
 
     try {
       if (editPassword && editPassword.trim() !== '') {
-        const { error: passError } = await supabase.auth.updateUser({ password: editPassword });
-        if (passError) {
-          alert('Error al actualizar contraseña: ' + passError.message);
-          return;
-        }
+        await supabase.auth.updateUser({ password: editPassword });
       }
 
       const updates = {
@@ -439,15 +458,10 @@ export default function Home() {
         updates.clave_respaldo = editPassword;
       }
 
-      const { error: profileError } = await supabase
+      await supabase
         .from('perfiles')
         .update(updates)
         .eq('id', session.user.id);
-
-      if (profileError) {
-        alert('Error al actualizar perfil: ' + profileError.message);
-        return;
-      }
 
       alert('✅ ¡Perfil actualizado correctamente!');
       setModalPerfilAbierto(false);
@@ -470,27 +484,20 @@ export default function Home() {
     if (!usuarioAEditar) return;
 
     try {
-      const updates = {
-        nombre: adminEditNombre,
-        celular: adminEditCelular,
-        clave_respaldo: adminEditPassword,
-      };
-
-      const { error } = await supabase
+      await supabase
         .from('perfiles')
-        .update(updates)
+        .update({
+          nombre: adminEditNombre,
+          celular: adminEditCelular,
+          clave_respaldo: adminEditPassword,
+        })
         .eq('id', usuarioAEditar.id);
 
-      if (error) {
-        alert('Error al actualizar participante: ' + error.message);
-        return;
-      }
-
-      alert('✅ ¡Datos del participante actualizados correctamente!');
+      alert('✅ ¡Datos actualizados correctamente!');
       setModalAdminEditAbierto(false);
       cargarParticipantes();
     } catch (err) {
-      alert('Error inesperado al guardar datos.');
+      alert('Error al guardar datos.');
     }
   };
 
@@ -498,21 +505,13 @@ export default function Home() {
     const file = e.target.files[0];
     if (!file || !session) return;
 
-    try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Url = reader.result;
-        setPerfil((prev) => ({ ...prev, foto_url: base64Url }));
-
-        await supabase
-          .from('perfiles')
-          .update({ foto_url: base64Url })
-          .eq('id', session.user.id);
-      };
-      reader.readAsDataURL(file);
-    } catch (err) {
-      console.error('Error al cargar la foto:', err);
-    }
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Url = reader.result;
+      setPerfil((prev) => ({ ...prev, foto_url: base64Url }));
+      await supabase.from('perfiles').update({ foto_url: base64Url }).eq('id', session.user.id);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRegaloImageUpload = (e) => {
@@ -543,16 +542,13 @@ export default function Home() {
     setRegaloDetalles('');
 
     if (session) {
-      await supabase
-        .from('perfiles')
-        .update({ deseos: nuevosDeseos })
-        .eq('id', session.user.id);
+      await supabase.from('perfiles').update({ deseos: nuevosDeseos }).eq('id', session.user.id);
     }
   };
 
   const ejecutarSorteoManual = () => {
     if (participantes.length < 2) {
-      alert('⚠️ Se necesitan al menos 2 participantes registrados para realizar el sorteo.');
+      alert('⚠️ Se necesitan al menos 2 participantes para sortear.');
       return;
     }
     ejecutarSorteoAutomatico(participantes);
@@ -613,7 +609,6 @@ export default function Home() {
     setPerfil(null);
     setModoAdmin(false);
     setEsRegistro(false);
-    limpiarFormulario();
   };
 
   if (loading) {
@@ -649,28 +644,23 @@ export default function Home() {
     if (isNaN(fechaObj.getTime())) return fechaStr;
     
     return fechaObj.toLocaleDateString('es-ES', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
     });
   };
 
-  // Función para formatear la hora y fecha exacta de los mensajes del chat
   const formatearHoraMensaje = (fechaIso) => {
     if (!fechaIso) return '';
     const fechaObj = new Date(fechaIso);
     if (isNaN(fechaObj.getTime())) return '';
     return fechaObj.toLocaleString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   };
+
+  // Cálculo de la barra de porcentaje de regalos subidos
+  const totalParticipantes = participantes.length;
+  const participantesConDeseos = participantes.filter(p => p.deseos && p.deseos.some(d => d !== null && (d.imagen || d.detalles || d.url))).length;
+  const porcentajeRegalos = totalParticipantes > 0 ? Math.round((participantesConDeseos / totalParticipantes) * 100) : 0;
 
   if (!session) {
     return (
@@ -758,6 +748,18 @@ export default function Home() {
               </>
             )}
 
+            {/* Checkbox Recordar Cuenta */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}>
+              <input
+                type="checkbox"
+                id="recordar"
+                checked={recordarCuenta}
+                onChange={(e) => setRecordarCuenta(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              <label htmlFor="recordar" style={{ cursor: 'pointer' }}>Recordar mi cuenta en este navegador</label>
+            </div>
+
             <button
               type="submit"
               style={{ width: '100%', padding: '0.75rem', backgroundColor: '#8B0000', color: 'white', fontWeight: 600, borderRadius: '0.75rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.5rem' }}
@@ -824,6 +826,18 @@ export default function Home() {
 
       {esAdmin && modoAdmin ? (
         <div style={{ width: '100%', maxWidth: '42rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          {/* Barra de Porcentaje de Regalos Subidos */}
+          <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem' }}>📊 Progreso de Deseos de los Participantes</h2>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.75rem' }}>
+              {participantesConDeseos} de {totalParticipantes} participantes ya han subido sus regalos ({porcentajeRegalos}% completado).
+            </p>
+            <div style={{ width: '100%', height: '1rem', backgroundColor: '#f3f4f6', borderRadius: '9999px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+              <div style={{ width: `${porcentajeRegalos}%`, height: '100%', backgroundColor: '#2E7D32', transition: 'width 0.3s ease' }}></div>
+            </div>
+          </section>
+
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '1rem' }}>⚙️ Configuración del Intercambio</h2>
             
@@ -862,11 +876,12 @@ export default function Home() {
             </form>
           </section>
 
+          {/* Botones Separados de Sortear y Limpiar */}
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.25rem' }}>🎲 Estado del Sorteo</h2>
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
-                {sorteoRealizado ? 'El sorteo se ha realizado con éxito.' : 'El sorteo está pendiente o se ejecutará al llegar la fecha.'}
+                {sorteoRealizado ? 'El sorteo se encuentra realizado.' : 'El sorteo está pendiente.'}
               </p>
 
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -875,18 +890,16 @@ export default function Home() {
                   onClick={ejecutarSorteoManual}
                   style={{ backgroundColor: '#2E7D32', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
                 >
-                  {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Iniciar Sorteo Ahora'}
+                  🎲 Sortear (Asignar)
                 </button>
 
-                {sorteoRealizado && (
-                  <button
-                    type="button"
-                    onClick={restablecerSorteo}
-                    style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
-                  >
-                    🗑️ Restablecer Sorteo
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={limpiarSorteo}
+                  style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+                >
+                  🧹 Limpiar (Sin Sorteo)
+                </button>
               </div>
             </div>
 
@@ -920,6 +933,7 @@ export default function Home() {
             )}
           </section>
 
+          {/* Tabla de Participantes con Icono Ojo (👁️) */}
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000' }}>👥 Participantes Registrados ({participantes.length})</h2>
@@ -941,7 +955,6 @@ export default function Home() {
                     <tr style={{ borderBottom: '1px solid #f3f4f6', color: '#9ca3af', textTransform: 'uppercase', fontSize: '0.625rem' }}>
                       <th style={{ padding: '0.5rem 0' }}>Nombre</th>
                       <th style={{ padding: '0.5rem 0' }}>Celular</th>
-                      <th style={{ padding: '0.5rem 0' }}>Clave Respaldo</th>
                       <th style={{ padding: '0.5rem 0', textAlign: 'center' }}>Acciones</th>
                     </tr>
                   </thead>
@@ -952,12 +965,24 @@ export default function Home() {
                           {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
                         </td>
                         <td style={{ padding: '0.75rem 0', color: '#4b5563' }}>{part.celular}</td>
-                        <td style={{ padding: '0.75rem 0', color: '#9ca3af', fontFamily: 'monospace' }}>{part.clave_respaldo || '••••'}</td>
-                        <td style={{ padding: '0.75rem 0', textAlign: 'center' }}>
+                        <td style={{ padding: '0.75rem 0', textAlign: 'center', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                          {/* Botón Ojo (Ver Info Completa) */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setParticipanteSeleccionadoInfo(part);
+                              setModalVerParticipanteAbierto(true);
+                            }}
+                            style={{ backgroundColor: '#FEF9C3', color: '#854D0E', border: '1px solid #FACC15', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
+                            title="Ver toda su información y deseos"
+                          >
+                            👁️ Ver
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => abrirAdminEdit(part)}
-                            style={{ backgroundColor: '#FAF6F0', color: '#8B0000', border: '1px solid #D4AF37', padding: '0.25rem 0.625rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
+                            style={{ backgroundColor: '#FAF6F0', color: '#8B0000', border: '1px solid #D4AF37', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
                           >
                             ✏️ Editar
                           </button>
@@ -991,12 +1016,7 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                style={{ display: 'none' }}
-              />
+              <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
             </label>
           </div>
 
@@ -1200,19 +1220,66 @@ export default function Home() {
         </div>
       )}
 
+      {/* Modal para ver info completa del participante (Icono Ojo Admin) */}
+      {modalVerParticipanteAbierto && participanteSeleccionadoInfo && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 60 }}>
+          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '30rem', width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#8B0000' }}>
+                👁️ Perfil de {participanteSeleccionadoInfo.nombre}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setModalVerParticipanteAbierto(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', color: '#6b7280' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.75rem', marginBottom: '1rem', backgroundColor: '#FAF6F0', padding: '1rem', borderRadius: '0.75rem' }}>
+              <p><strong>📞 Celular:</strong> {participanteSeleccionadoInfo.celular || 'No registrado'}</p>
+              <p><strong>🔑 Clave de Respaldo:</strong> {participanteSeleccionadoInfo.clave_respaldo || 'No disponible'}</p>
+            </div>
+
+            <h4 style={{ fontWeight: 'bold', fontSize: '0.875rem', color: '#8B0000', marginBottom: '0.5rem' }}>🎁 Deseos Registrados:</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+              {participanteSeleccionadoInfo.deseos && participanteSeleccionadoInfo.deseos.map((deseo, idx) => (
+                <div key={idx} style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '0.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '8rem' }}>
+                  {deseo?.imagen ? (
+                    <>
+                      <img src={deseo.imagen} alt="Deseo" style={{ width: '100%', height: '3.5rem', objectFit: 'cover', borderRadius: '0.375rem', marginBottom: '0.25rem' }} />
+                      <p style={{ fontSize: '0.5rem', color: '#374151', textAlign: 'center', marginBottom: '0.25rem' }}>{deseo.detalles || 'Sin detalles'}</p>
+                      {deseo?.url && (
+                        <a href={deseo.url.startsWith('http') ? deseo.url : `https://${deseo.url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.5rem', backgroundColor: '#8B0000', color: 'white', textAlign: 'center', padding: '0.125rem', borderRadius: '0.25rem', textDecoration: 'none' }}>
+                          Ver Enlace
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <span style={{ fontSize: '0.625rem', color: '#9ca3af', textAlign: 'center', margin: 'auto' }}>Vacío ({idx + 1})</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'right', marginTop: '1.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setModalVerParticipanteAbierto(false)}
+                style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {imagenAmpliada && (
-        <div 
-          onClick={() => setImagenAmpliada(null)}
-          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50, cursor: 'pointer' }}
-        >
+        <div onClick={() => setImagenAmpliada(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50, cursor: 'pointer' }}>
           <div style={{ position: 'relative', maxWidth: '42rem', maxHeight: '90vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <button
-              type="button"
-              onClick={() => setImagenAmpliada(null)}
-              style={{ position: 'absolute', top: '-2.5rem', right: 0, backgroundColor: 'white', color: 'black', borderRadius: '9999px', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}
-            >
-              ✕
-            </button>
+            <button type="button" onClick={() => setImagenAmpliada(null)} style={{ position: 'absolute', top: '-2.5rem', right: 0, backgroundColor: 'white', color: 'black', borderRadius: '9999px', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>✕</button>
             <img src={imagenAmpliada} alt="Imagen ampliada" style={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain', borderRadius: '1rem', border: '2px solid white' }} />
           </div>
         </div>
@@ -1221,58 +1288,23 @@ export default function Home() {
       {modalPerfilAbierto && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50 }}>
           <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '22rem', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
-            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>
-              Editar Mi Perfil
-            </h3>
-
+            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>Editar Mi Perfil</h3>
             <form onSubmit={guardarCambiosPerfilUsuario} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nombre Completo</label>
-                <input
-                  type="text"
-                  required
-                  value={editNombre}
-                  onChange={(e) => setEditNombre(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <input type="text" required value={editNombre} onChange={(e) => setEditNombre(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Teléfono / Celular</label>
-                <input
-                  type="text"
-                  required
-                  value={editCelular}
-                  onChange={(e) => setEditCelular(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <input type="text" required value={editCelular} onChange={(e) => setEditCelular(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nueva Contraseña (Opcional)</label>
-                <input
-                  type="password"
-                  placeholder="Dejar en blanco para no cambiar"
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <input type="password" placeholder="Dejar en blanco para no cambiar" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setModalPerfilAbierto(false)}
-                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}
-                >
-                  Guardar Cambios
-                </button>
+                <button type="button" onClick={() => setModalPerfilAbierto(false)} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Guardar Cambios</button>
               </div>
             </form>
           </div>
@@ -1282,58 +1314,23 @@ export default function Home() {
       {modalAdminEditAbierto && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50 }}>
           <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '22rem', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
-            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>
-              Corregir Participante
-            </h3>
-
+            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>Corregir Participante</h3>
             <form onSubmit={guardarCambiosUsuarioPorAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nombre Completo</label>
-                <input
-                  type="text"
-                  required
-                  value={adminEditNombre}
-                  onChange={(e) => setAdminEditNombre(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <input type="text" required value={adminEditNombre} onChange={(e) => setAdminEditNombre(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Teléfono / Celular</label>
-                <input
-                  type="text"
-                  required
-                  value={adminEditCelular}
-                  onChange={(e) => setAdminEditCelular(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <input type="text" required value={adminEditCelular} onChange={(e) => setAdminEditCelular(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Restablecer Clave (Clave Respaldo)</label>
-                <input
-                  type="text"
-                  required
-                  value={adminEditPassword}
-                  onChange={(e) => setAdminEditPassword(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <input type="text" required value={adminEditPassword} onChange={(e) => setAdminEditPassword(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setModalAdminEditAbierto(false)}
-                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}
-                >
-                  Actualizar Datos
-                </button>
+                <button type="button" onClick={() => setModalAdminEditAbierto(false)} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Actualizar Datos</button>
               </div>
             </form>
           </div>
@@ -1343,113 +1340,55 @@ export default function Home() {
       {modalAbierto && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50 }}>
           <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '22rem', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
-            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>
-              Agregar Opción {slotSeleccionado !== null ? slotSeleccionado + 1 : 1}
-            </h3>
-
+            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>Agregar Opción {slotSeleccionado !== null ? slotSeleccionado + 1 : 1}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>
-                  1. Foto del regalo
-                </label>
-                
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>1. Foto del regalo</label>
                 {regaloImagen ? (
                   <div style={{ position: 'relative', width: '100%', height: '7rem', borderRadius: '0.75rem', overflow: 'hidden', border: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
                     <img src={regaloImagen} alt="Vista previa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <button
-                      type="button"
-                      onClick={() => setRegaloImagen('')}
-                      style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
-                    >
-                      ✕
-                    </button>
+                    <button type="button" onClick={() => setRegaloImagen('')} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>✕</button>
                   </div>
                 ) : (
                   <label style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', backgroundColor: '#FAF6F0', border: '2px dashed #D4AF37', borderRadius: '0.75rem', cursor: 'pointer' }}>
                     <span style={{ fontSize: '1.125rem' }}>🖼️</span>
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#8B0000' }}>Abrir Galería de Fotos</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleRegaloImageUpload}
-                      style={{ display: 'none' }}
-                    />
+                    <input type="file" accept="image/*" onChange={handleRegaloImageUpload} style={{ display: 'none' }} />
                   </label>
                 )}
               </div>
-
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>
-                  2. Talla, Medidas o Detalles importantes
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Talla M, color azul, zapatilla 40"
-                  value={regaloDetalles}
-                  onChange={(e) => setRegaloDetalles(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>2. Talla, Medidas o Detalles importantes</label>
+                <input type="text" placeholder="Ej. Talla M, color azul" value={regaloDetalles} onChange={(e) => setRegaloDetalles(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
-
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>
-                  3. Enlace de compra (Opcional - URL)
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://tienda.com/producto"
-                  value={regaloUrl}
-                  onChange={(e) => setRegaloUrl(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                />
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>3. Enlace de compra (URL)</label>
+                <input type="text" placeholder="https://tienda.com/producto" value={regaloUrl} onChange={(e) => setRegaloUrl(e.target.value)} style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
               </div>
             </div>
-
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
-              <button
-                type="button"
-                onClick={() => setModalAbierto(false)}
-                style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={guardarRegalo}
-                style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}
-              >
-                Guardar Regalo
-              </button>
+              <button type="button" onClick={() => setModalAbierto(false)} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}>Cancelar</button>
+              <button type="button" onClick={guardarRegalo} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Guardar Regalo</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Los chats flotantes SOLAMENTE se muestran si el sorteo ya se realizó */}
+      {/* Chats flotantes condicionados estrictamente a que el sorteo esté realizado */}
       {sorteoRealizado && session && (
         <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
           
           {amigoSecretoInfo && (
             <div style={{ position: 'relative' }}>
               {tieneNotifRegalo && !chatRegaloAbierto && (
-                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', width: '1rem', height: '1rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', fontSize: '0.5625rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, border: '2px solid white' }}>
-                  !
-                </span>
+                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', width: '1rem', height: '1rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', fontSize: '0.5625rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, border: '2px solid white' }}>!</span>
               )}
 
               {chatRegaloAbierto ? (
                 <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #8B0000', width: '20rem', height: '24rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   <div style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      🎁 Chat con tu Amigo Secreto
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setChatRegaloAbierto(false)}
-                      style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
-                    >
-                      ✕
-                    </button>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>🎁 Chat con tu Amigo Secreto</span>
+                    <button type="button" onClick={() => setChatRegaloAbierto(false)} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}>✕</button>
                   </div>
 
                   <div style={{ flex: 1, padding: '0.75rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FAF6F0' }}>
@@ -1457,9 +1396,7 @@ export default function Home() {
                       (m.remitente_id === session.user.id && m.destinatario_id === amigoSecretoInfo.id) ||
                       (m.remitente_id === amigoSecretoInfo.id && m.destinatario_id === session.user.id)
                     ).length === 0 ? (
-                      <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>
-                        Escribe aquí anónimamente a {amigoSecretoInfo.nombre} para darle pistas.
-                      </p>
+                      <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>Escribe aquí anónimamente a {amigoSecretoInfo.nombre} para darle pistas.</p>
                     ) : (
                       mensajesDB.filter(m => 
                         (m.remitente_id === session.user.id && m.destinatario_id === amigoSecretoInfo.id) ||
@@ -1481,27 +1418,12 @@ export default function Home() {
                   </div>
 
                   <form onSubmit={enviarMensajeRegalo} style={{ padding: '0.5rem', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '0.375rem', backgroundColor: 'white' }}>
-                    <input
-                      type="text"
-                      placeholder="Escribe un mensaje..."
-                      value={mensajeRegalo}
-                      onChange={(e) => setMensajeRegalo(e.target.value)}
-                      style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                    />
-                    <button type="submit" style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-                      Enviar
-                    </button>
+                    <input type="text" placeholder="Escribe un mensaje..." value={mensajeRegalo} onChange={(e) => setMensajeRegalo(e.target.value)} style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
+                    <button type="submit" style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>Enviar</button>
                   </form>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={abrirChatRegalo}
-                  style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#8B0000', color: 'white', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '2px solid white', cursor: 'pointer', fontSize: '1.25rem' }}
-                  title="Chat: A quien regalo"
-                >
-                  🎁
-                </button>
+                <button type="button" onClick={abrirChatRegalo} style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#8B0000', color: 'white', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '2px solid white', cursor: 'pointer', fontSize: '1.25rem' }} title="Chat: A quien regalo">🎁</button>
               )}
             </div>
           )}
@@ -1509,24 +1431,14 @@ export default function Home() {
           {personaQueMeRegalaInfo && (
             <div style={{ position: 'relative' }}>
               {tieneNotifAnoni && !chatAnoniAbierto && (
-                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', width: '1rem', height: '1rem', backgroundColor: '#8B0000', color: 'white', borderRadius: '9999px', fontSize: '0.5625rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, border: '2px solid white' }}>
-                  !
-                </span>
+                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', width: '1rem', height: '1rem', backgroundColor: '#8B0000', color: 'white', borderRadius: '9999px', fontSize: '0.5625rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, border: '2px solid white' }}>!</span>
               )}
 
               {chatAnoniAbierto ? (
                 <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #D4AF37', width: '20rem', height: '24rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   <div style={{ backgroundColor: '#D4AF37', color: 'white', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      ✨ Chat con tu Anónimo
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setChatAnoniAbierto(false)}
-                      style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
-                    >
-                      ✕
-                    </button>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>✨ Chat con tu Anónimo</span>
+                    <button type="button" onClick={() => setChatAnoniAbierto(false)} style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}>✕</button>
                   </div>
 
                   <div style={{ flex: 1, padding: '0.75rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FAF6F0' }}>
@@ -1534,9 +1446,7 @@ export default function Home() {
                       (m.remitente_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
                       (m.remitente_id === personaQueMeRegalaInfo.id && m.destinatario_id === session.user.id)
                     ).length === 0 ? (
-                      <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>
-                        Aquí recibirás mensajes de la persona secreta que te va a regalar.
-                      </p>
+                      <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>Aquí recibirás mensajes de la persona secreta que te va a regalar.</p>
                     ) : (
                       mensajesDB.filter(m => 
                         (m.remitente_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
@@ -1558,27 +1468,12 @@ export default function Home() {
                   </div>
 
                   <form onSubmit={enviarMensajeAnoni} style={{ padding: '0.5rem', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '0.375rem', backgroundColor: 'white' }}>
-                    <input
-                      type="text"
-                      placeholder="Responde a tu anónimo..."
-                      value={mensajeAnoni}
-                      onChange={(e) => setMensajeAnoni(e.target.value)}
-                      style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
-                    />
-                    <button type="submit" style={{ backgroundColor: '#D4AF37', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-                      Enviar
-                    </button>
+                    <input type="text" placeholder="Responde a tu anónimo..." value={mensajeAnoni} onChange={(e) => setMensajeAnoni(e.target.value)} style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }} />
+                    <button type="submit" style={{ backgroundColor: '#D4AF37', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>Enviar</button>
                   </form>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={abrirChatAnoni}
-                  style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#D4AF37', color: 'white', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '2px solid white', cursor: 'pointer', fontSize: '1.25rem' }}
-                  title="Chat: Quien me regala"
-                >
-                  ✨
-                </button>
+                <button type="button" onClick={abrirChatAnoni} style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#D4AF37', color: 'white', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '2px solid white', cursor: 'pointer', fontSize: '1.25rem' }} title="Chat: Quien me regala">✨</button>
               )}
             </div>
           )}

@@ -37,7 +37,7 @@ export default function Home() {
   const [celular, setCelular] = useState('');
   const [authError, setAuthError] = useState('');
 
-  // Modal Regalos (Actualizado con campo de detalles/tallas)
+  // Modal Regalos
   const [modalAbierto, setModalAbierto] = useState(false);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
   const [regaloImagen, setRegaloImagen] = useState('');
@@ -586,7 +586,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center text-[#8B0000] font-medium">
+      <div style={{ minHeight: '100vh', backgroundColor: '#FDFBF7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B0000', fontWeight: 500 }}>
         Cargando Amigo Secreto...
       </div>
     );
@@ -628,25 +628,25 @@ export default function Home() {
 
   if (!session) {
     return (
-      <main className="min-h-screen bg-[#FDFBF7] text-[#333333] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#F2E8DC] w-full max-w-md">
-          <div className="text-center mb-6">
-            <span className="text-4xl">🎄</span>
-            <h1 className="text-2xl font-bold text-[#8B0000] mt-2">Amigo Secreto</h1>
-            <p className="text-xs text-gray-500 mt-1">
+      <main style={{ minHeight: '100vh', backgroundColor: '#FDFBF7', color: '#333333', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC', width: '100%', maxWidth: '28rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <span style={{ fontSize: '2.25rem' }}>🎄</span>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B0000', marginTop: '0.5rem' }}>Amigo Secreto</h1>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
               {esRegistro ? 'Crea tu cuenta para participar' : 'Ingresa con tus datos'}
             </p>
           </div>
 
           {authError && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs mb-4 border border-red-200 text-center">
+            <div style={{ backgroundColor: '#fef2f2', color: '#dc2626', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', marginBottom: '1rem', border: '1px solid #fecaca', textAlign: 'center' }}>
               {authError}
             </div>
           )}
 
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Correo Electrónico</label>
               <input
                 type="email"
                 required
@@ -654,12 +654,12 @@ export default function Home() {
                 placeholder="correo@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full text-sm p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                style={{ width: '100%', fontSize: '0.875rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Contraseña</label>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Contraseña</label>
               <input
                 type="password"
                 required
@@ -667,14 +667,14 @@ export default function Home() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full text-sm p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                style={{ width: '100%', fontSize: '0.875rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
               />
             </div>
 
             {esRegistro && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Confirmar Contraseña</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Confirmar Contraseña</label>
                   <input
                     type="password"
                     required
@@ -682,31 +682,31 @@ export default function Home() {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full text-sm p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                    style={{ width: '100%', fontSize: '0.875rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nombre Completo</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. Eloy Mecinas"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className="w-full text-sm p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                    style={{ width: '100%', fontSize: '0.875rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono / Celular (Obligatorio)</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Teléfono / Celular (Obligatorio)</label>
                   <input
                     type="text"
                     required
                     placeholder="Ej. 987654321"
                     value={celular}
                     onChange={(e) => setCelular(e.target.value)}
-                    className="w-full text-sm p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                    style={{ width: '100%', fontSize: '0.875rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                   />
                 </div>
               </>
@@ -714,20 +714,20 @@ export default function Home() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#8B0000] text-white font-semibold rounded-xl hover:bg-[#6B0000] shadow-sm transition-all text-sm mt-2"
+              style={{ width: '100%', padding: '0.75rem', backgroundColor: '#8B0000', color: 'white', fontWeight: 600, borderRadius: '0.75rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', marginTop: '0.5rem' }}
             >
               {esRegistro ? 'Registrarse' : 'Iniciar Sesión'}
             </button>
           </form>
 
-          <div className="text-center mt-6">
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
             <button
               type="button"
               onClick={() => {
                 setEsRegistro(!esRegistro);
                 limpiarFormulario();
               }}
-              className="text-xs font-semibold text-[#D4AF37] hover:underline"
+              style={{ fontSize: '0.75rem', fontWeight: 600, color: '#D4AF37', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               {esRegistro ? '¿Ya tienes cuenta? Inicia sesión aquí' : '¿No tienes cuenta? Regístrate aquí'}
             </button>
@@ -738,14 +738,14 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDFBF7] text-[#333333] p-4 md:p-8 flex flex-col items-center relative">
+    <main style={{ minHeight: '100vh', backgroundColor: '#FDFBF7', color: '#333333', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
       
-      <div className="w-full max-w-2xl flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
+      <div style={{ width: '100%', maxWidth: '42rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <button
             type="button"
             onClick={cerrarSesion}
-            className="text-xs text-gray-400 hover:text-red-600 transition-all font-medium"
+            style={{ fontSize: '0.75rem', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
           >
             ← Cerrar Sesión
           </button>
@@ -758,7 +758,7 @@ export default function Home() {
               setEditPassword('');
               setModalPerfilAbierto(true);
             }}
-            className="w-7 h-7 rounded-full bg-white border border-[#F2E8DC] text-gray-500 hover:text-[#8B0000] hover:border-[#D4AF37] flex items-center justify-center transition-all text-xs shadow-xs"
+            style={{ width: '1.75rem', height: '1.75rem', borderRadius: '9999px', backgroundColor: 'white', border: '1px solid #F2E8DC', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.75rem' }}
             title="Editar Mi Cuenta"
           >
             ⚙️
@@ -769,7 +769,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setModoAdmin(!modoAdmin)}
-            className="px-3.5 py-1.5 text-xs font-bold rounded-full bg-[#8B0000] text-white hover:bg-[#6B0000] transition-all shadow-sm flex items-center gap-1.5"
+            style={{ padding: '0.375rem 0.875rem', fontSize: '0.75rem', fontWeight: 'bold', borderRadius: '9999px', backgroundColor: '#8B0000', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
           >
             {modoAdmin ? '👤 Cambiar a Modo Usuario' : '👑 Cambiar a Modo Administrador'}
           </button>
@@ -777,38 +777,38 @@ export default function Home() {
       </div>
 
       {esAdmin && modoAdmin ? (
-        <div className="w-full max-w-2xl space-y-6">
-          <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC]">
-            <h2 className="text-lg font-bold text-[#8B0000] mb-4">⚙️ Configuración del Intercambio</h2>
+        <div style={{ width: '100%', maxWidth: '42rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '1rem' }}>⚙️ Configuración del Intercambio</h2>
             
-            <form onSubmit={guardarConfiguracionEvento} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={guardarConfiguracionEvento} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Fecha y Hora del Intercambio</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Fecha y Hora del Intercambio</label>
                   <input
                     type="datetime-local"
                     value={normalizarFechaInput(fechaEvento)}
                     onChange={(e) => setFechaEvento(e.target.value)}
-                    className="w-full text-xs p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                    style={{ width: '100%', fontSize: '0.75rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Presupuesto Sugerido</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Presupuesto Sugerido</label>
                   <input
                     type="text"
                     value={presupuesto}
                     onChange={(e) => setPresupuesto(e.target.value)}
                     placeholder="Ej. S/ 50 - S/ 100"
-                    className="w-full text-xs p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                    style={{ width: '100%', fontSize: '0.75rem', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
                 <button
                   type="submit"
-                  className="bg-[#8B0000] text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-[#6B0000] transition-all text-xs"
+                  style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
                 >
                   💾 Guardar Cambios de Configuración
                 </button>
@@ -816,41 +816,41 @@ export default function Home() {
             </form>
           </section>
 
-          <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC]">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-bold text-[#8B0000] mb-1">🎲 Estado del Sorteo</h2>
-              <p className="text-xs text-gray-500 mb-4">
+          <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.25rem' }}>🎲 Estado del Sorteo</h2>
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
                 {sorteoRealizado ? 'El sorteo se ha realizado con éxito.' : 'El sorteo está pendiente o se ejecutará al llegar la fecha.'}
               </p>
               <button
                 type="button"
                 onClick={ejecutarSorteoManual}
-                className="bg-[#2E7D32] text-white px-6 py-2.5 rounded-xl font-semibold shadow-md hover:bg-[#25632A] transition-all text-xs"
+                style={{ backgroundColor: '#2E7D32', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
               >
                 {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Iniciar Sorteo Ahora'}
               </button>
             </div>
 
             {sorteoRealizado && participantes.length > 0 && (
-              <div className="mt-6 border-t border-gray-100 pt-4">
-                <h3 className="text-sm font-bold text-[#8B0000] mb-3">🎁 Asignaciones de Amigos Secretos</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
+              <div style={{ marginTop: '1.5rem', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.75rem' }}>🎁 Asignaciones de Amigos Secretos</h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', textAlign: 'left', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr className="border-b border-gray-100 text-gray-400 uppercase text-[10px]">
-                        <th className="py-2">Participante</th>
-                        <th className="py-2">Le regala a</th>
+                      <tr style={{ borderBottom: '1px solid #f3f4f6', color: '#9ca3af', textTransform: 'uppercase', fontSize: '0.625rem' }}>
+                        <th style={{ padding: '0.5rem 0' }}>Participante</th>
+                        <th style={{ padding: '0.5rem 0' }}>Le regala a</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody>
                       {participantes.map((part) => {
                         const amigoAsignado = participantes.find(p => p.id === part.amigo_secreto_id);
                         return (
-                          <tr key={part.id} className="hover:bg-gray-50">
-                            <td className="py-2.5 font-semibold text-gray-800">
-                              {part.nombre} {part.es_admin && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded ml-1">Admin</span>}
+                          <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
+                            <td style={{ padding: '0.625rem 0', fontWeight: 600, color: '#1f2937' }}>
+                              {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
                             </td>
-                            <td className="py-2.5 text-[#8B0000] font-bold">🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</td>
+                            <td style={{ padding: '0.625rem 0', color: '#8B0000', fontWeight: 'bold' }}>🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</td>
                           </tr>
                         );
                       })}
@@ -861,44 +861,44 @@ export default function Home() {
             )}
           </section>
 
-          <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-[#8B0000]">👥 Participantes Registrados ({participantes.length})</h2>
+          <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000' }}>👥 Participantes Registrados ({participantes.length})</h2>
               <button
                 type="button"
                 onClick={cargarParticipantes}
-                className="text-xs text-[#D4AF37] hover:underline font-semibold"
+                style={{ fontSize: '0.75rem', color: '#D4AF37', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
               >
                 🔄 Actualizar Lista
               </button>
             </div>
 
             {participantes.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-6">Aún no hay participantes registrados.</p>
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', padding: '1.5rem 0' }}>Aún no hay participantes registrados.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', textAlign: 'left', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr className="border-b border-gray-100 text-gray-400 uppercase text-[10px]">
-                      <th className="py-2">Nombre</th>
-                      <th className="py-2">Celular</th>
-                      <th className="py-2">Clave Respaldo</th>
-                      <th className="py-2 text-center">Acciones</th>
+                    <tr style={{ borderBottom: '1px solid #f3f4f6', color: '#9ca3af', textTransform: 'uppercase', fontSize: '0.625rem' }}>
+                      <th style={{ padding: '0.5rem 0' }}>Nombre</th>
+                      <th style={{ padding: '0.5rem 0' }}>Celular</th>
+                      <th style={{ padding: '0.5rem 0' }}>Clave Respaldo</th>
+                      <th style={{ padding: '0.5rem 0', textAlign: 'center' }}>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody>
                     {participantes.map((part) => (
-                      <tr key={part.id} className="hover:bg-gray-50">
-                        <td className="py-3 font-semibold text-gray-800">
-                          {part.nombre} {part.es_admin && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded ml-1">Admin</span>}
+                      <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
+                        <td style={{ padding: '0.75rem 0', fontWeight: 600, color: '#1f2937' }}>
+                          {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
                         </td>
-                        <td className="py-3 text-gray-600">{part.celular}</td>
-                        <td className="py-3 text-gray-400 font-mono">{part.clave_respaldo || '••••'}</td>
-                        <td className="py-3 text-center">
+                        <td style={{ padding: '0.75rem 0', color: '#4b5563' }}>{part.celular}</td>
+                        <td style={{ padding: '0.75rem 0', color: '#9ca3af', fontFamily: 'monospace' }}>{part.clave_respaldo || '••••'}</td>
+                        <td style={{ padding: '0.75rem 0', textAlign: 'center' }}>
                           <button
                             type="button"
                             onClick={() => abrirAdminEdit(part)}
-                            className="bg-[#FAF6F0] text-[#8B0000] border border-[#D4AF37] px-2.5 py-1 rounded-lg font-semibold hover:bg-[#F2E8DC] transition-all text-[11px]"
+                            style={{ backgroundColor: '#FAF6F0', color: '#8B0000', border: '1px solid #D4AF37', padding: '0.25rem 0.625rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.6875rem' }}
                           >
                             ✏️ Editar
                           </button>
@@ -912,23 +912,23 @@ export default function Home() {
           </section>
         </div>
       ) : (
-        <div className="w-full max-w-xl flex flex-col items-center gap-6 pb-20">
+        <div style={{ width: '100%', maxWidth: '36rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', paddingBottom: '5rem' }}>
 
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-[#8B0000]">
-              ¡Bienvenido, {nombreUsuario}! {esAdmin && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full ml-1 font-semibold">Administrador</span>}
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8B0000' }}>
+              ¡Bienvenido, {nombreUsuario}! {esAdmin && <span style={{ fontSize: '0.75rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.5rem', borderRadius: '9999px', marginLeft: '0.25rem', fontWeight: 600 }}>Administrador</span>}
             </h1>
           </div>
 
-          <div className="relative group">
-            <label className="cursor-pointer block">
-              <div className="w-28 h-28 rounded-full bg-[#FAF6F0] border-2 border-dashed border-[#D4AF37] flex flex-col items-center justify-center overflow-hidden shadow-sm hover:border-[#8B0000] transition-all">
+          <div>
+            <label style={{ cursor: 'pointer', display: 'block' }}>
+              <div style={{ width: '7rem', height: '7rem', borderRadius: '9999px', backgroundColor: '#FAF6F0', border: '2px dashed #D4AF37', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                 {perfil?.foto_url ? (
-                  <img src={perfil.foto_url} alt="Foto de Perfil" className="w-full h-full object-cover" />
+                  <img src={perfil.foto_url} alt="Foto de Perfil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div className="text-center p-2">
-                    <span className="text-2xl block">📷</span>
-                    <span className="text-[10px] font-semibold text-gray-500">Cargar Foto</span>
+                  <div style={{ textAlign: 'center', padding: '0.5rem' }}>
+                    <span style={{ fontSize: '1.5rem', display: 'block' }}>📷</span>
+                    <span style={{ fontSize: '0.625rem', fontWeight: 600, color: '#6b7280' }}>Cargar Foto</span>
                   </div>
                 )}
               </div>
@@ -936,17 +936,17 @@ export default function Home() {
                 type="file"
                 accept="image/*"
                 onChange={handleAvatarUpload}
-                className="hidden"
+                style={{ display: 'none' }}
               />
             </label>
           </div>
 
-          <section className="w-full bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC]">
-            <h2 className="text-center font-bold text-base text-[#8B0000] mb-4">
+          <section style={{ width: '100%', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
+            <h2 style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem' }}>
               Mis Deseos
             </h2>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
               {deseos.map((deseo, idx) => (
                 <div
                   key={idx}
@@ -963,49 +963,49 @@ export default function Home() {
                     }
                     setModalAbierto(true);
                   }}
-                  className="min-h-[150px] border-2 border-dashed border-[#D4AF37] rounded-2xl flex flex-col items-center justify-between p-2 cursor-pointer hover:bg-[#FDFBF7] transition-all bg-[#FAF6F0] relative overflow-hidden"
+                  style={{ minHeight: '9.375rem', border: '2px dashed #D4AF37', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', cursor: 'pointer', backgroundColor: '#FAF6F0', position: 'relative', overflow: 'hidden' }}
                 >
                   {deseo?.imagen ? (
                     <>
-                      <div className="w-full h-16 relative group overflow-hidden rounded-xl">
-                        <img src={deseo.imagen} alt={`Regalo ${idx + 1}`} className="w-full h-full object-cover" />
+                      <div style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.75rem' }}>
+                        <img src={deseo.imagen} alt={`Regalo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <div 
                           onClick={(e) => {
                             e.stopPropagation();
                             setImagenAmpliada(deseo.imagen);
                           }}
-                          className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold"
+                          style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.625rem', fontWeight: 'bold' }}
                         >
                           🔍 Ver
                         </div>
                       </div>
 
                       {deseo?.detalles && (
-                        <p className="text-[9px] text-gray-600 font-medium text-center line-clamp-2 w-full px-1 bg-white/60 rounded">
+                        <p style={{ fontSize: '0.5625rem', color: '#4b5563', fontWeight: 500, textAlign: 'center', width: '100%', padding: '0 0.25rem', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '0.25rem' }}>
                           📝 {deseo.detalles}
                         </p>
                       )}
 
-                      <div className="w-full flex items-center justify-center mt-1">
+                      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '0.25rem' }}>
                         {deseo?.url ? (
                           <a
                             href={deseo.url.startsWith('http') ? deseo.url : `https://${deseo.url}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full bg-[#8B0000] text-white py-1 px-2 rounded-lg text-[10px] font-semibold flex items-center justify-center gap-1 hover:bg-[#6B0000] transition-all shadow-xs"
+                            style={{ width: '100%', backgroundColor: '#8B0000', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontSize: '0.625rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
                           >
                             🛒 Comprar
                           </a>
                         ) : (
-                          <span className="text-[9px] text-gray-400 font-medium">Sin enlace</span>
+                          <span style={{ fontSize: '0.5625rem', color: '#9ca3af', fontWeight: 500 }}>Sin enlace</span>
                         )}
                       </div>
                     </>
                   ) : (
-                    <div className="text-center my-auto">
-                      <span className="text-xl text-[#D4AF37] font-bold">+</span>
-                      <p className="text-[10px] font-medium text-gray-500 mt-1">Opción {idx + 1}</p>
+                    <div style={{ textAlign: 'center', margin: 'auto' }}>
+                      <span style={{ fontSize: '1.25rem', color: '#D4AF37', fontWeight: 'bold' }}>+</span>
+                      <p style={{ fontSize: '0.625rem', fontWeight: 500, color: '#6b7280', marginTop: '0.25rem' }}>Opción {idx + 1}</p>
                     </div>
                   )}
                 </div>
@@ -1014,35 +1014,35 @@ export default function Home() {
           </section>
 
           {sorteoRealizado && (
-            <section className="w-full bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC] text-center">
-              <h2 className="text-base font-bold text-[#8B0000] mb-2">
+            <section style={{ width: '100%', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC', textAlign: 'center' }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem' }}>
                 🎁 Tu Amigo Secreto
               </h2>
-              <p className="text-xs text-gray-500 mb-4">
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
                 {cajaAbierta ? '¡Aquí tienes los detalles de la persona a quien le darás tu regalo!' : 'Haz clic en la caja sorpresa para revelar a quién te tocó y qué desea.'}
               </p>
 
               <div
                 onClick={() => setCajaAbierta(true)}
-                className="cursor-pointer bg-[#FAF6F0] border-2 border-dashed border-[#D4AF37] rounded-3xl p-6 hover:bg-[#F2E8DC] transition-all max-w-md mx-auto shadow-xs group"
+                style={{ cursor: 'pointer', backgroundColor: '#FAF6F0', border: '2px dashed #D4AF37', borderRadius: '1.5rem', padding: '1.5rem', maxWidth: '28rem', margin: '0 auto', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
               >
                 {cajaAbierta ? (
-                  <div className="space-y-4 text-left">
-                    <div className="text-center">
-                      <span className="text-3xl block">🎉</span>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Te tocó regalar a:</p>
-                      <p className="text-lg font-extrabold text-[#8B0000]">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <span style={{ fontSize: '1.875rem', display: 'block' }}>🎉</span>
+                      <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Te tocó regalar a:</p>
+                      <p style={{ fontSize: '1.125rem', fontWeight: 'extrabold', color: '#8B0000' }}>
                         {amigoSecretoInfo ? amigoSecretoInfo.nombre : 'Cargando...'}
                       </p>
                     </div>
 
-                    <div className="border-t border-[#F2E8DC] pt-3">
-                      <p className="text-xs font-bold text-[#8B0000] mb-2 text-center">🎁 Los deseos de tu amigo secreto:</p>
-                      <div className="grid grid-cols-3 gap-2">
+                    <div style={{ borderTop: '1px solid #F2E8DC', paddingTop: '0.75rem' }}>
+                      <p style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem', textAlign: 'center' }}>🎁 Los deseos de tu amigo secreto:</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                         {amigoSecretoInfo?.deseos && amigoSecretoInfo.deseos.map((deseoAmigo, idx) => (
                           <div 
                             key={idx} 
-                            className="min-h-[160px] bg-white border border-[#F2E8DC] rounded-xl flex flex-col justify-between p-1.5 overflow-hidden shadow-xs"
+                            style={{ minHeight: '10rem', backgroundColor: 'white', border: '1px solid #F2E8DC', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.375rem', overflow: 'hidden' }}
                           >
                             {deseoAmigo?.imagen ? (
                               <>
@@ -1051,37 +1051,37 @@ export default function Home() {
                                     e.stopPropagation();
                                     setImagenAmpliada(deseoAmigo.imagen);
                                   }}
-                                  className="w-full h-16 relative group overflow-hidden rounded-lg cursor-pointer"
+                                  style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', cursor: 'pointer' }}
                                 >
-                                  <img src={deseoAmigo.imagen} alt="Deseo" className="w-full h-full object-cover" />
-                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[9px] font-bold">
+                                  <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.5625rem', fontWeight: 'bold' }}>
                                     🔍 Ver
                                   </div>
                                 </div>
 
                                 {deseoAmigo?.detalles && (
-                                  <p className="text-[9px] text-gray-700 font-medium text-center line-clamp-3 px-0.5 bg-gray-50 rounded">
+                                  <p style={{ fontSize: '0.5625rem', color: '#374151', fontWeight: 500, textAlign: 'center', padding: '0.125rem', backgroundColor: '#f9fafb', borderRadius: '0.25rem' }}>
                                     📝 {deseoAmigo.detalles}
                                   </p>
                                 )}
 
-                                <div className="w-full mt-1">
+                                <div style={{ width: '100%', marginTop: '0.25rem' }}>
                                   {deseoAmigo?.url ? (
                                     <a
                                       href={deseoAmigo.url.startsWith('http') ? deseoAmigo.url : `https://${deseoAmigo.url}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="w-full bg-[#8B0000] text-white py-1 px-1 rounded-md text-[9px] font-semibold flex items-center justify-center gap-1 hover:bg-[#6B0000] transition-all"
+                                      style={{ width: '100%', backgroundColor: '#8B0000', color: 'white', padding: '0.25rem', borderRadius: '0.375rem', fontSize: '0.5625rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
                                     >
                                       🛒 Enlace
                                     </a>
                                   ) : (
-                                    <span className="text-[9px] text-gray-400 block text-center">Sin enlace</span>
+                                    <span style={{ fontSize: '0.5625rem', color: '#9ca3af', display: 'block', textAlign: 'center' }}>Sin enlace</span>
                                   )}
                                 </div>
                               </>
                             ) : (
-                              <span className="text-[10px] text-gray-400 text-center my-auto">Sin opción {idx + 1}</span>
+                              <span style={{ fontSize: '0.625rem', color: '#9ca3af', textAlign: 'center', margin: 'auto' }}>Sin opción {idx + 1}</span>
                             )}
                           </div>
                         ))}
@@ -1089,9 +1089,9 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <div className="group-hover:scale-105 transition-transform text-center">
-                    <span className="text-4xl block mb-2">🎁</span>
-                    <span className="text-xs font-bold text-[#8B0000] uppercase tracking-wide bg-white px-3 py-1.5 rounded-full border border-[#D4AF37] shadow-xs">
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{ fontSize: '2.25rem', display: 'block', marginBottom: '0.5rem' }}>🎁</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', textTransform: 'uppercase', backgroundColor: 'white', padding: '0.375rem 0.75rem', borderRadius: '9999px', border: '1px solid #D4AF37' }}>
                       Abrir Caja Sorpresa ✨
                     </span>
                   </div>
@@ -1100,39 +1100,39 @@ export default function Home() {
             </section>
           )}
 
-          <footer className="w-full text-center bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC]">
-            <div className="inline-block bg-[#FAF6F0] border border-[#D4AF37] text-[#8B0000] font-semibold text-xs px-4 py-1.5 rounded-full mb-4 shadow-sm">
+          <footer style={{ width: '100%', textAlign: 'center', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
+            <div style={{ display: 'inline-block', backgroundColor: '#FAF6F0', border: '1px solid #D4AF37', color: '#8B0000', fontWeight: 600, fontSize: '0.75rem', padding: '0.375rem 1rem', borderRadius: '9999px', marginBottom: '1rem' }}>
               💰 Presupuesto sugerido: {presupuesto}
             </div>
 
-            <p className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider mb-1">
+            <p style={{ fontSize: '0.625rem', fontWeight: 'bold', color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
               Fecha del Intercambio
             </p>
-            <p className="text-sm font-bold text-[#8B0000] mb-4">
+            <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '1rem' }}>
               {formatearFechaLegible(fechaEvento)}
             </p>
 
             {tiempoRestante.expirado ? (
-              <div className="bg-[#FAF6F0] p-3 rounded-2xl border border-[#D4AF37] text-[#8B0000] font-bold text-sm">
+              <div style={{ backgroundColor: '#FAF6F0', padding: '0.75rem', borderRadius: '1rem', border: '1px solid #D4AF37', color: '#8B0000', fontWeight: 'bold', fontSize: '0.875rem' }}>
                 🎁 ¡Llegó el día del intercambio de regalos! 🎁
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-2 max-w-xs mx-auto">
-                <div className="bg-[#FAF6F0] p-2 rounded-xl border border-[#F2E8DC]">
-                  <span className="block text-base font-bold text-[#8B0000]">{tiempoRestante.dias}</span>
-                  <span className="text-[9px] text-gray-500 font-medium">DÍAS</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', maxWidth: '20rem', margin: '0 auto' }}>
+                <div style={{ backgroundColor: '#FAF6F0', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #F2E8DC' }}>
+                  <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'bold', color: '#8B0000' }}>{tiempoRestante.dias}</span>
+                  <span style={{ fontSize: '0.5625rem', color: '#6b7280', fontWeight: 500 }}>DÍAS</span>
                 </div>
-                <div className="bg-[#FAF6F0] p-2 rounded-xl border border-[#F2E8DC]">
-                  <span className="block text-base font-bold text-[#8B0000]">{tiempoRestante.horas}</span>
-                  <span className="text-[9px] text-gray-500 font-medium">HORAS</span>
+                <div style={{ backgroundColor: '#FAF6F0', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #F2E8DC' }}>
+                  <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'bold', color: '#8B0000' }}>{tiempoRestante.horas}</span>
+                  <span style={{ fontSize: '0.5625rem', color: '#6b7280', fontWeight: 500 }}>HORAS</span>
                 </div>
-                <div className="bg-[#FAF6F0] p-2 rounded-xl border border-[#F2E8DC]">
-                  <span className="block text-base font-bold text-[#8B0000]">{tiempoRestante.minutos}</span>
-                  <span className="text-[9px] text-gray-500 font-medium">MINS</span>
+                <div style={{ backgroundColor: '#FAF6F0', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #F2E8DC' }}>
+                  <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'bold', color: '#8B0000' }}>{tiempoRestante.minutos}</span>
+                  <span style={{ fontSize: '0.5625rem', color: '#6b7280', fontWeight: 500 }}>MINS</span>
                 </div>
-                <div className="bg-[#FAF6F0] p-2 rounded-xl border border-[#F2E8DC]">
-                  <span className="block text-base font-bold text-[#8B0000]">{tiempoRestante.segundos}</span>
-                  <span className="text-[9px] text-gray-500 font-medium">SEGS</span>
+                <div style={{ backgroundColor: '#FAF6F0', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #F2E8DC' }}>
+                  <span style={{ display: 'block', fontSize: '1rem', fontWeight: 'bold', color: '#8B0000' }}>{tiempoRestante.segundos}</span>
+                  <span style={{ fontSize: '0.5625rem', color: '#6b7280', fontWeight: 500 }}>SEGS</span>
                 </div>
               </div>
             )}
@@ -1144,73 +1144,73 @@ export default function Home() {
       {imagenAmpliada && (
         <div 
           onClick={() => setImagenAmpliada(null)}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 cursor-pointer"
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50, cursor: 'pointer' }}
         >
-          <div className="relative max-w-2xl max-h-[90vh] w-full flex items-center justify-center">
+          <div style={{ position: 'relative', maxWidth: '42rem', maxHeight: '90vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <button
               type="button"
               onClick={() => setImagenAmpliada(null)}
-              className="absolute -top-10 right-0 bg-white text-black rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow-md"
+              style={{ position: 'absolute', top: '-2.5rem', right: 0, backgroundColor: 'white', color: 'black', borderRadius: '9999px', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}
             >
               ✕
             </button>
-            <img src={imagenAmpliada} alt="Imagen ampliada" className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border-2 border-white" />
+            <img src={imagenAmpliada} alt="Imagen ampliada" style={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain', borderRadius: '1rem', border: '2px solid white' }} />
           </div>
         </div>
       )}
 
       {modalPerfilAbierto && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-3xl max-w-sm w-full shadow-lg border border-[#F2E8DC]">
-            <h3 className="font-bold text-base text-[#8B0000] mb-4 text-center">
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50 }}>
+          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '22rem', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
+            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>
               Editar Mi Perfil
             </h3>
 
-            <form onSubmit={guardarCambiosPerfilUsuario} className="space-y-4">
+            <form onSubmit={guardarCambiosPerfilUsuario} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nombre Completo</label>
                 <input
                   type="text"
                   required
                   value={editNombre}
                   onChange={(e) => setEditNombre(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono / Celular</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Teléfono / Celular</label>
                 <input
                   type="text"
                   required
                   value={editCelular}
                   onChange={(e) => setEditCelular(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Nueva Contraseña (Opcional)</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nueva Contraseña (Opcional)</label>
                 <input
                   type="password"
                   placeholder="Dejar en blanco para no cambiar"
                   value={editPassword}
                   onChange={(e) => setEditPassword(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
-              <div className="flex justify-end gap-2 mt-6">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
                 <button
                   type="button"
                   onClick={() => setModalPerfilAbierto(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-500 rounded-xl hover:bg-gray-100"
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-[#8B0000] text-white rounded-xl hover:bg-[#6B0000] shadow-sm transition-all"
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}
                 >
                   Guardar Cambios
                 </button>
@@ -1221,57 +1221,57 @@ export default function Home() {
       )}
 
       {modalAdminEditAbierto && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-3xl max-w-sm w-full shadow-lg border border-[#F2E8DC]">
-            <h3 className="font-bold text-base text-[#8B0000] mb-4 text-center">
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50 }}>
+          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '22rem', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
+            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>
               Corregir Participante
             </h3>
 
-            <form onSubmit={guardarCambiosUsuarioPorAdmin} className="space-y-4">
+            <form onSubmit={guardarCambiosUsuarioPorAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Nombre Completo</label>
                 <input
                   type="text"
                   required
                   value={adminEditNombre}
                   onChange={(e) => setAdminEditNombre(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono / Celular</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Teléfono / Celular</label>
                 <input
                   type="text"
                   required
                   value={adminEditCelular}
                   onChange={(e) => setAdminEditCelular(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Restablecer Clave (Clave Respaldo)</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>Restablecer Clave (Clave Respaldo)</label>
                 <input
                   type="text"
                   required
                   value={adminEditPassword}
                   onChange={(e) => setAdminEditPassword(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
-              <div className="flex justify-end gap-2 mt-6">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
                 <button
                   type="button"
                   onClick={() => setModalAdminEditAbierto(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-500 rounded-xl hover:bg-gray-100"
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-[#8B0000] text-white rounded-xl hover:bg-[#6B0000] shadow-sm transition-all"
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}
                 >
                   Actualizar Datos
                 </button>
@@ -1282,45 +1282,45 @@ export default function Home() {
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-3xl max-w-sm w-full shadow-lg border border-[#F2E8DC]">
-            <h3 className="font-bold text-base text-[#8B0000] mb-4 text-center">
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50 }}>
+          <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', maxWidth: '22rem', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
+            <h3 style={{ fontWeight: 'bold', fontSize: '1rem', color: '#8B0000', marginBottom: '1rem', textAlign: 'center' }}>
               Agregar Opción {slotSeleccionado !== null ? slotSeleccionado + 1 : 1}
             </h3>
 
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>
                   1. Foto del regalo
                 </label>
                 
                 {regaloImagen ? (
-                  <div className="relative w-full h-28 rounded-xl overflow-hidden border border-gray-200 mb-2">
-                    <img src={regaloImagen} alt="Vista previa" className="w-full h-full object-cover" />
+                  <div style={{ position: 'relative', width: '100%', height: '7rem', borderRadius: '0.75rem', overflow: 'hidden', border: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
+                    <img src={regaloImagen} alt="Vista previa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button
                       type="button"
                       onClick={() => setRegaloImagen('')}
-                      className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                      style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
                     >
                       ✕
                     </button>
                   </div>
                 ) : (
-                  <label className="w-full flex items-center justify-center gap-2 p-3 bg-[#FAF6F0] border-2 border-dashed border-[#D4AF37] rounded-xl cursor-pointer hover:bg-[#F2E8DC] transition-all">
-                    <span className="text-lg">🖼️</span>
-                    <span className="text-xs font-semibold text-[#8B0000]">Abrir Galería de Fotos</span>
+                  <label style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', backgroundColor: '#FAF6F0', border: '2px dashed #D4AF37', borderRadius: '0.75rem', cursor: 'pointer' }}>
+                    <span style={{ fontSize: '1.125rem' }}>🖼️</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#8B0000' }}>Abrir Galería de Fotos</span>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleRegaloImageUpload}
-                      className="hidden"
+                      style={{ display: 'none' }}
                     />
                   </label>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>
                   2. Talla, Medidas o Detalles importantes
                 </label>
                 <input
@@ -1328,12 +1328,12 @@ export default function Home() {
                   placeholder="Ej. Talla M, color azul, zapatilla 40"
                   value={regaloDetalles}
                   onChange={(e) => setRegaloDetalles(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>
                   3. Enlace de compra (Opcional - URL)
                 </label>
                 <input
@@ -1341,23 +1341,23 @@ export default function Home() {
                   placeholder="https://tienda.com/producto"
                   value={regaloUrl}
                   onChange={(e) => setRegaloUrl(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                  style={{ width: '100%', fontSize: '0.75rem', padding: '0.625rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-6">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
               <button
                 type="button"
                 onClick={() => setModalAbierto(false)}
-                className="px-4 py-2 text-xs font-semibold text-gray-500 rounded-xl hover:bg-gray-100"
+                style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '0.75rem' }}
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={guardarRegalo}
-                className="px-4 py-2 text-xs font-semibold bg-[#8B0000] text-white rounded-xl hover:bg-[#6B0000] shadow-sm transition-all"
+                style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#8B0000', color: 'white', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}
               >
                 Guardar Regalo
               </button>
@@ -1367,37 +1367,37 @@ export default function Home() {
       )}
 
       {sorteoRealizado && session && (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 items-end">
+        <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
           
           {amigoSecretoInfo && (
-            <div className="relative">
+            <div style={{ position: 'relative' }}>
               {tieneNotifRegalo && !chatRegaloAbierto && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center animate-bounce z-10 border border-white">
+                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', width: '1rem', height: '1rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', fontSize: '0.5625rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, border: '2px solid white' }}>
                   !
                 </span>
               )}
 
               {chatRegaloAbierto ? (
-                <div className="bg-white rounded-2xl shadow-xl border border-[#8B0000] w-80 h-96 flex flex-col overflow-hidden">
-                  <div className="bg-[#8B0000] text-white p-3 flex justify-between items-center">
-                    <span className="font-bold text-xs flex items-center gap-1.5">
+                <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #8B0000', width: '20rem', height: '24rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       🎁 Chat con tu Amigo Secreto
                     </span>
                     <button
                       type="button"
                       onClick={() => setChatRegaloAbierto(false)}
-                      className="text-white hover:text-gray-300 text-xs font-bold"
+                      style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="flex-1 p-3 overflow-y-auto space-y-2 bg-[#FAF6F0]">
+                  <div style={{ flex: 1, padding: '0.75rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FAF6F0' }}>
                     {mensajesDB.filter(m => 
                       (m.remitente_id === session.user.id && m.destinatario_id === amigoSecretoInfo.id) ||
                       (m.remitente_id === amigoSecretoInfo.id && m.destinatario_id === session.user.id)
                     ).length === 0 ? (
-                      <p className="text-[11px] text-gray-400 text-center mt-8">
+                      <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>
                         Escribe aquí anónimamente a {amigoSecretoInfo.nombre} para darle pistas.
                       </p>
                     ) : (
@@ -1407,8 +1407,8 @@ export default function Home() {
                       ).map((msg, idx) => {
                         const esmio = msg.remitente_id === session.user.id;
                         return (
-                          <div key={idx} className={`flex flex-col ${esmio ? 'items-end' : 'items-start'}`}>
-                            <div className={`max-w-[80%] p-2 rounded-xl text-xs ${esmio ? 'bg-[#8B0000] text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'}`}>
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: esmio ? 'flex-end' : 'flex-start' }}>
+                            <div style={{ maxWidth: '80%', padding: '0.5rem', borderRadius: '0.75rem', fontSize: '0.75rem', backgroundColor: esmio ? '#8B0000' : 'white', color: esmio ? 'white' : '#1f2937', border: esmio ? 'none' : '1px solid #e5e7eb', borderBottomRightRadius: esmio ? 0 : '0.75rem', borderBottomLeftRadius: esmio ? '0.75rem' : 0 }}>
                               {msg.texto}
                             </div>
                           </div>
@@ -1417,15 +1417,15 @@ export default function Home() {
                     )}
                   </div>
 
-                  <form onSubmit={enviarMensajeRegalo} className="p-2 border-t border-gray-100 flex gap-1.5 bg-white">
+                  <form onSubmit={enviarMensajeRegalo} style={{ padding: '0.5rem', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '0.375rem', backgroundColor: 'white' }}>
                     <input
                       type="text"
                       placeholder="Escribe un mensaje..."
                       value={mensajeRegalo}
                       onChange={(e) => setMensajeRegalo(e.target.value)}
-                      className="flex-1 text-xs p-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#8B0000]"
+                      style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                     />
-                    <button type="submit" className="bg-[#8B0000] text-white px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#6B0000]">
+                    <button type="submit" style={{ backgroundColor: '#8B0000', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
                       Enviar
                     </button>
                   </form>
@@ -1434,7 +1434,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={abrirChatRegalo}
-                  className="w-14 h-14 bg-[#8B0000] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all text-xl border-2 border-white relative"
+                  style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#8B0000', color: 'white', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '2px solid white', cursor: 'pointer', fontSize: '1.25rem' }}
                   title="Chat: A quien regalo"
                 >
                   🎁
@@ -1444,34 +1444,34 @@ export default function Home() {
           )}
 
           {personaQueMeRegalaInfo && (
-            <div className="relative">
+            <div style={{ position: 'relative' }}>
               {tieneNotifAnoni && !chatAnoniAbierto && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#8B0000] text-white rounded-full text-[9px] font-bold flex items-center justify-center animate-bounce z-10 border border-white">
+                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', width: '1rem', height: '1rem', backgroundColor: '#8B0000', color: 'white', borderRadius: '9999px', fontSize: '0.5625rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, border: '2px solid white' }}>
                   !
                 </span>
               )}
 
               {chatAnoniAbierto ? (
-                <div className="bg-white rounded-2xl shadow-xl border border-[#D4AF37] w-80 h-96 flex flex-col overflow-hidden">
-                  <div className="bg-[#D4AF37] text-white p-3 flex justify-between items-center">
-                    <span className="font-bold text-xs flex items-center gap-1.5">
+                <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #D4AF37', width: '20rem', height: '24rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ backgroundColor: '#D4AF37', color: 'white', padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       ✨ Chat con tu Anónimo
                     </span>
                     <button
                       type="button"
                       onClick={() => setChatAnoniAbierto(false)}
-                      className="text-white hover:text-gray-200 text-xs font-bold"
+                      style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="flex-1 p-3 overflow-y-auto space-y-2 bg-[#FAF6F0]">
+                  <div style={{ flex: 1, padding: '0.75rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FAF6F0' }}>
                     {mensajesDB.filter(m => 
                       (m.remitente_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
                       (m.remitente_id === personaQueMeRegalaInfo.id && m.destinatario_id === session.user.id)
                     ).length === 0 ? (
-                      <p className="text-[11px] text-gray-400 text-center mt-8">
+                      <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>
                         Aquí recibirás mensajes de la persona secreta que te va a regalar.
                       </p>
                     ) : (
@@ -1481,8 +1481,8 @@ export default function Home() {
                       ).map((msg, idx) => {
                         const esmio = msg.remitente_id === session.user.id;
                         return (
-                          <div key={idx} className={`flex flex-col ${esmio ? 'items-end' : 'items-start'}`}>
-                            <div className={`max-w-[80%] p-2 rounded-xl text-xs ${esmio ? 'bg-[#D4AF37] text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'}`}>
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: esmio ? 'flex-end' : 'flex-start' }}>
+                            <div style={{ maxWidth: '80%', padding: '0.5rem', borderRadius: '0.75rem', fontSize: '0.75rem', backgroundColor: esmio ? '#D4AF37' : 'white', color: esmio ? 'white' : '#1f2937', border: esmio ? 'none' : '1px solid #e5e7eb', borderBottomRightRadius: esmio ? 0 : '0.75rem', borderBottomLeftRadius: esmio ? '0.75rem' : 0 }}>
                               {msg.texto}
                             </div>
                           </div>
@@ -1491,15 +1491,15 @@ export default function Home() {
                     )}
                   </div>
 
-                  <form onSubmit={enviarMensajeAnoni} className="p-2 border-t border-gray-100 flex gap-1.5 bg-white">
+                  <form onSubmit={enviarMensajeAnoni} style={{ padding: '0.5rem', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '0.375rem', backgroundColor: 'white' }}>
                     <input
                       type="text"
                       placeholder="Responde a tu anónimo..."
                       value={mensajeAnoni}
                       onChange={(e) => setMensajeAnoni(e.target.value)}
-                      className="flex-1 text-xs p-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#D4AF37]"
+                      style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.75rem', outline: 'none' }}
                     />
-                    <button type="submit" className="bg-[#D4AF37] text-white px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#b8972b]">
+                    <button type="submit" style={{ backgroundColor: '#D4AF37', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
                       Enviar
                     </button>
                   </form>
@@ -1508,7 +1508,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={abrirChatAnoni}
-                  className="w-14 h-14 bg-[#D4AF37] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all text-xl border-2 border-white relative"
+                  style={{ width: '3.5rem', height: '3.5rem', backgroundColor: '#D4AF37', color: 'white', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '2px solid white', cursor: 'pointer', fontSize: '1.25rem' }}
                   title="Chat: Quien me regala"
                 >
                   ✨

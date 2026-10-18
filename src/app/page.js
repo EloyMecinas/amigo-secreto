@@ -196,6 +196,38 @@ export default function Home() {
     if (session) await cargarPerfil(session.user.id);
   };
 
+  const restablecerSorteo = async () => {
+    if (!confirm('⚠️ ¿Estás seguro de restablecer el sorteo? Esto borrará todas las asignaciones actuales y los participantes tendrán que sortear de nuevo.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('perfiles')
+        .update({ amigo_secreto_id: null })
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (error) {
+        alert('Error al restablecer el sorteo: ' + error.message);
+        return;
+      }
+
+      setSorteoRealizado(false);
+      setAmigoSecretoInfo(null);
+      setPersonaQueMeRegalaInfo(null);
+      setCajaAbierta(false);
+      setChatRegaloAbierto(false);
+      setChatAnoniAbierto(false);
+
+      await cargarParticipantes();
+      if (session) await cargarPerfil(session.user.id);
+
+      alert('🔄 ¡El sorteo ha sido restablecido con éxito! Ahora aparece como pendiente.');
+    } catch (err) {
+      alert('Error inesperado al restablecer el sorteo.');
+    }
+  };
+
   useEffect(() => {
     const calcularTiempo = () => {
       const fechaLimpia = normalizarFechaInput(fechaEvento);
@@ -626,6 +658,20 @@ export default function Home() {
     });
   };
 
+  // Función para formatear la hora y fecha exacta de los mensajes del chat
+  const formatearHoraMensaje = (fechaIso) => {
+    if (!fechaIso) return '';
+    const fechaObj = new Date(fechaIso);
+    if (isNaN(fechaObj.getTime())) return '';
+    return fechaObj.toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   if (!session) {
     return (
       <main style={{ minHeight: '100vh', backgroundColor: '#FDFBF7', color: '#333333', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -822,13 +868,26 @@ export default function Home() {
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
                 {sorteoRealizado ? 'El sorteo se ha realizado con éxito.' : 'El sorteo está pendiente o se ejecutará al llegar la fecha.'}
               </p>
-              <button
-                type="button"
-                onClick={ejecutarSorteoManual}
-                style={{ backgroundColor: '#2E7D32', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
-              >
-                {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Iniciar Sorteo Ahora'}
-              </button>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={ejecutarSorteoManual}
+                  style={{ backgroundColor: '#2E7D32', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+                >
+                  {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Iniciar Sorteo Ahora'}
+                </button>
+
+                {sorteoRealizado && (
+                  <button
+                    type="button"
+                    onClick={restablecerSorteo}
+                    style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+                  >
+                    🗑️ Restablecer Sorteo
+                  </button>
+                )}
+              </div>
             </div>
 
             {sorteoRealizado && participantes.length > 0 && (
@@ -1366,6 +1425,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Los chats flotantes SOLAMENTE se muestran si el sorteo ya se realizó */}
       {sorteoRealizado && session && (
         <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
           
@@ -1409,7 +1469,10 @@ export default function Home() {
                         return (
                           <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: esmio ? 'flex-end' : 'flex-start' }}>
                             <div style={{ maxWidth: '80%', padding: '0.5rem', borderRadius: '0.75rem', fontSize: '0.75rem', backgroundColor: esmio ? '#8B0000' : 'white', color: esmio ? 'white' : '#1f2937', border: esmio ? 'none' : '1px solid #e5e7eb', borderBottomRightRadius: esmio ? 0 : '0.75rem', borderBottomLeftRadius: esmio ? '0.75rem' : 0 }}>
-                              {msg.texto}
+                              <div>{msg.texto}</div>
+                              <div style={{ fontSize: '0.5rem', color: esmio ? '#fca5a5' : '#9ca3af', textAlign: 'right', marginTop: '0.2rem' }}>
+                                {formatearHoraMensaje(msg.creado_at)}
+                              </div>
                             </div>
                           </div>
                         );
@@ -1483,7 +1546,10 @@ export default function Home() {
                         return (
                           <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: esmio ? 'flex-end' : 'flex-start' }}>
                             <div style={{ maxWidth: '80%', padding: '0.5rem', borderRadius: '0.75rem', fontSize: '0.75rem', backgroundColor: esmio ? '#D4AF37' : 'white', color: esmio ? 'white' : '#1f2937', border: esmio ? 'none' : '1px solid #e5e7eb', borderBottomRightRadius: esmio ? 0 : '0.75rem', borderBottomLeftRadius: esmio ? '0.75rem' : 0 }}>
-                              {msg.texto}
+                              <div>{msg.texto}</div>
+                              <div style={{ fontSize: '0.5rem', color: esmio ? '#fef08a' : '#9ca3af', textAlign: 'right', marginTop: '0.2rem' }}>
+                                {formatearHoraMensaje(msg.creado_at)}
+                              </div>
                             </div>
                           </div>
                         );

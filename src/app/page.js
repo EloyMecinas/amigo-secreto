@@ -953,7 +953,7 @@ export default function Home() {
                       let faltaTexto = 'Completado 🎉';
                       if (porcentaje === 0) faltaTexto = 'Faltan 3 deseos';
                       else if (porcentaje === 33) faltaTexto = 'Faltan 2 deseos';
-                      else if (porcentaje === 67) falta 'Falta 1 deseo';
+                      else if (porcentaje === 67) faltaTexto = 'Falta 1 deseo';
 
                       return (
                         <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
@@ -1454,7 +1454,7 @@ export default function Home() {
                       <p style={{ fontSize: '0.6875rem', color: '#9ca3af', textAlign: 'center', marginTop: '2rem' }}>Aquí recibirás mensajes de la persona secreta que te va a regalar.</p>
                     ) : (
                       mensajesDB.filter(m => 
-                        (m.remitnet_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
+                        (m.remitente_id === session.user.id && m.destinatario_id === personaQueMeRegalaInfo.id) ||
                         (m.remitente_id === personaQueMeRegalaInfo.id && m.destinatario_id === session.user.id)
                       ).map((msg, idx) => {
                         const esmio = msg.remitente_id === session.user.id;

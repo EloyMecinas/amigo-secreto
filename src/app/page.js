@@ -53,6 +53,9 @@ export default function Home() {
   const [modalVerParticipanteAbierto, setModalVerParticipanteAbierto] = useState(false);
   const [participanteSeleccionadoInfo, setParticipanteSeleccionadoInfo] = useState(null);
 
+  // Estado para revelar asignaciones específicas en el Admin con la hojita
+  const [reveladosAdmin, setReveladosAdmin] = useState({});
+
   // Cajita Sorpresa Amigo Secreto
   const [cajaAbierta, setCajaAbierta] = useState(false);
   const [amigoSecretoInfo, setAmigoSecretoInfo] = useState(null); 
@@ -231,6 +234,7 @@ export default function Home() {
       setCajaAbierta(false);
       setChatRegaloAbierto(false);
       setChatAnoniAbierto(false);
+      setReveladosAdmin({});
 
       await cargarParticipantes();
       if (session) await cargarPerfil(session.user.id);
@@ -744,7 +748,6 @@ export default function Home() {
               </>
             )}
 
-            {/* Checkbox Recordar Cuenta con alineación armoniosa */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', fontSize: '0.75rem', color: '#4b5563', marginTop: '0.25rem' }}>
               <input
                 type="checkbox"
@@ -905,12 +908,32 @@ export default function Home() {
                     <tbody>
                       {participantes.map((part) => {
                         const amigoAsignado = participantes.find(p => p.id === part.amigo_secreto_id);
+                        const esMioParticipante = session && part.id === session.user.id;
+                        const estaRevelado = reveladosAdmin[part.id] === true;
+
                         return (
                           <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
                             <td style={{ padding: '0.625rem 0', fontWeight: 600, color: '#1f2937' }}>
                               {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
                             </td>
-                            <td style={{ padding: '0.625rem 0', color: '#8B0000', fontWeight: 'bold' }}>🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</td>
+                            <td style={{ padding: '0.625rem 0', color: '#8B0000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {esMioParticipante && !estaRevelado ? (
+                                <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.6875rem' }}>🔒 Oculto (Tu participación)</span>
+                              ) : (
+                                <span>🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</span>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setReveladosAdmin(prev => ({ ...prev, [part.id]: !prev[part.id] }));
+                                }}
+                                style={{ backgroundColor: '#FAF6F0', border: '1px solid #D4AF37', borderRadius: '0.375rem', padding: '0.125rem 0.375rem', cursor: 'pointer', fontSize: '0.625rem' }}
+                                title={estaRevelado ? "Ocultar" : "Ver con hojita"}
+                              >
+                                {estaRevelado ? '👁️‍🗨️ Ocultar' : '📄 Ver'}
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -921,7 +944,6 @@ export default function Home() {
             )}
           </section>
 
-          {/* Tabla de Participantes con Estado y Porcentaje */}
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000' }}>👥 Participantes Registrados ({participantes.length})</h2>
@@ -1031,6 +1053,7 @@ export default function Home() {
               Mis Deseos
             </h2>
 
+            {/* Cuadros de deseos con ajuste de imagen mejorado (object-fit: contain y fondo neutro para que se vea impecable) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
               {deseos.map((deseo, idx) => (
                 <div
@@ -1048,12 +1071,12 @@ export default function Home() {
                     }
                     setModalAbierto(true);
                   }}
-                  style={{ minHeight: '9.375rem', border: '2px dashed #D4AF37', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', cursor: 'pointer', backgroundColor: '#FAF6F0', position: 'relative', overflow: 'hidden' }}
+                  style={{ minHeight: '11rem', border: '2px dashed #D4AF37', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem', cursor: 'pointer', backgroundColor: '#FAF6F0', position: 'relative', overflow: 'hidden' }}
                 >
                   {deseo?.imagen ? (
                     <>
-                      <div style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.75rem' }}>
-                        <img src={deseo.imagen} alt={`Regalo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ width: '100%', height: '4.5rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={deseo.imagen} alt={`Regalo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         <div 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1066,7 +1089,7 @@ export default function Home() {
                       </div>
 
                       {deseo?.detalles && (
-                        <p style={{ fontSize: '0.5625rem', color: '#4b5563', fontWeight: 500, textAlign: 'center', width: '100%', padding: '0 0.25rem', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '0.25rem' }}>
+                        <p style={{ fontSize: '0.5625rem', color: '#4b5563', fontWeight: 500, textAlign: 'center', width: '100%', padding: '0 0.25rem', backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           📝 {deseo.detalles}
                         </p>
                       )}
@@ -1136,9 +1159,9 @@ export default function Home() {
                                     e.stopPropagation();
                                     setImagenAmpliada(deseoAmigo.imagen);
                                   }}
-                                  style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', cursor: 'pointer' }}
+                                  style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                                 >
-                                  <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                   <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.5625rem', fontWeight: 'bold' }}>
                                     🔍 Ver
                                   </div>
@@ -1253,7 +1276,9 @@ export default function Home() {
                 <div key={idx} style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '0.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '8rem' }}>
                   {deseo?.imagen ? (
                     <>
-                      <img src={deseo.imagen} alt="Deseo" style={{ width: '100%', height: '3.5rem', objectFit: 'cover', borderRadius: '0.375rem', marginBottom: '0.25rem' }} />
+                      <div style={{ width: '100%', height: '3.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.375rem', overflow: 'hidden', marginBottom: '0.25rem' }}>
+                        <img src={deseo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </div>
                       <p style={{ fontSize: '0.5rem', color: '#374151', textAlign: 'center', marginBottom: '0.25rem' }}>{deseo.detalles || 'Sin detalles'}</p>
                       {deseo?.url && (
                         <a href={deseo.url.startsWith('http') ? deseo.url : `https://${deseo.url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.5rem', backgroundColor: '#8B0000', color: 'white', textAlign: 'center', padding: '0.125rem', borderRadius: '0.25rem', textDecoration: 'none' }}>
@@ -1350,8 +1375,8 @@ export default function Home() {
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.25rem' }}>1. Foto del regalo</label>
                 {regaloImagen ? (
-                  <div style={{ position: 'relative', width: '100%', height: '7rem', borderRadius: '0.75rem', overflow: 'hidden', border: '1px solid #e5e7eb', marginBottom: '0.5rem' }}>
-                    <img src={regaloImagen} alt="Vista previa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'relative', width: '100%', height: '7rem', borderRadius: '0.75rem', overflow: 'hidden', border: '1px solid #e5e7eb', marginBottom: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={regaloImagen} alt="Vista previa" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     <button type="button" onClick={() => setRegaloImagen('')} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '9999px', width: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>✕</button>
                   </div>
                 ) : (

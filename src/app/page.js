@@ -200,11 +200,13 @@ export default function Home() {
       if (todos) {
         setParticipantes(todos);
 
+        // Verificamos si tiene asignado un amigo secreto convirtiendo ambos a String por seguridad
         if (data.amigo_secreto_id) {
-          const amigo = todos.find(p => p.id === data.amigo_secreto_id);
-          if (amigo) {
-            setAmigoSecretoInfo(amigo);
+          const amigoEncontrado = todos.find(p => String(p.id).trim() === String(data.amigo_secreto_id).trim());
+          if (amigoEncontrado) {
+            setAmigoSecretoInfo(amigoEncontrado);
           } else {
+            // Búsqueda directa por si acaso no venía en la lista general
             const { data: amigoDirecto } = await supabase
               .from('perfiles')
               .select('*')
@@ -212,9 +214,11 @@ export default function Home() {
               .maybeSingle();
             if (amigoDirecto) setAmigoSecretoInfo(amigoDirecto);
           }
+        } else {
+          setAmigoSecretoInfo(null);
         }
 
-        const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
+        const quienMeRegala = todos.find(p => String(p.amigo_secreto_id).trim() === String(data.id).trim());
         if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
       }
     }

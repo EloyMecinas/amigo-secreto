@@ -17,7 +17,6 @@ export default function Home() {
   const [fechaEvento, setFechaEvento] = useState('2026-10-31T14:43');
   const [presupuesto, setPresupuesto] = useState('S/ 50 - S/ 100');
   const [participantes, setParticipantes] = useState([]);
-  const [sorteoRealizado, setSorteoRealizado] = useState(false);
 
   // Tiempo
   const [tiempoRestante, setTiempoRestante] = useState({
@@ -56,8 +55,7 @@ export default function Home() {
   // Estado para revelar asignaciones específicas en el Admin con la hojita
   const [reveladosAdmin, setReveladosAdmin] = useState({});
 
-  // Cajita Sorpresa Amigo Secreto
-  const [cajaAbierta, setCajaAbierta] = useState(false);
+  // Cajita Sorpresa Amigo Secreto (Siempre abierta por defecto)
   const [amigoSecretoInfo, setAmigoSecretoInfo] = useState(null); 
   const [personaQueMeRegalaInfo, setPersonaQueMeRegalaInfo] = useState(null); 
 
@@ -184,10 +182,6 @@ export default function Home() {
     const { data } = await supabase.from('perfiles').select('*');
     if (data) {
       setParticipantes(data);
-      const yaSorteado = data.some(p => p.amigo_secreto_id !== null && p.amigo_secreto_id !== undefined);
-      if (yaSorteado) {
-        setSorteoRealizado(true);
-      }
     }
   };
 
@@ -205,12 +199,6 @@ export default function Home() {
       const { data: todos } = await supabase.from('perfiles').select('*');
       if (todos) {
         setParticipantes(todos);
-        
-        // Detecta automáticamente si ya se realizó el sorteo si alguien tiene amigo asignado
-        const yaSorteado = todos.some(p => p.amigo_secreto_id !== null && p.amigo_secreto_id !== undefined);
-        if (yaSorteado) {
-          setSorteoRealizado(true);
-        }
 
         if (data.amigo_secreto_id) {
           const amigo = todos.find(p => p.id === data.amigo_secreto_id);
@@ -221,40 +209,6 @@ export default function Home() {
         if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
       }
     }
-  };
-
-  const ejecutarSorteoAutomatico = async (listaParticipantes) => {
-    if (listaParticipantes.length < 2) return;
-
-    const ids = listaParticipantes.map(p => p.id);
-    let asignaciones = {};
-    let valido = false;
-
-    while (!valido) {
-      let mezcla = [...ids].sort(() => Math.random() - 0.5);
-      valido = true;
-      for (let i = 0; i < ids.length; i++) {
-        if (ids[i] === mezcla[i]) {
-          valido = false;
-          break;
-        }
-      }
-      if (valido) {
-        for (let i = 0; i < ids.length; i++) {
-          asignaciones[ids[i]] = mezcla[i];
-        }
-      }
-    }
-
-    for (const participanteId of ids) {
-      await supabase
-        .from('perfiles')
-        .update({ amigo_secreto_id: asignaciones[participanteId] })
-        .eq('id', participanteId);
-    }
-
-    setSorteoRealizado(true);
-    if (session) await cargarPerfil(session.user.id);
   };
 
   const restablecerSorteo = async () => {
@@ -273,10 +227,8 @@ export default function Home() {
         return;
       }
 
-      setSorteoRealizado(false);
       setAmigoSecretoInfo(null);
       setPersonaQueMeRegalaInfo(null);
-      setCajaAbierta(false);
       setChatRegaloAbierto(false);
       setChatAnoniAbierto(false);
       setReveladosAdmin({});
@@ -305,10 +257,6 @@ export default function Home() {
           segundos: '00',
           expirado: true
         });
-
-        if (!sorteoRealizado && participantes.length > 0) {
-          ejecutarSorteoAutomatico(participantes);
-        }
         return;
       }
 
@@ -330,7 +278,7 @@ export default function Home() {
     const intervalo = setInterval(calcularTiempo, 1000);
 
     return () => clearInterval(intervalo);
-  }, [fechaEvento, participantes, sorteoRealizado]);
+  }, [fechaEvento]);
 
   const guardarConfiguracionEvento = async (e) => {
     e.preventDefault();
@@ -551,15 +499,6 @@ export default function Home() {
     if (session) {
       await supabase.from('perfiles').update({ deseos: nuevosDeseos }).eq('id', session.user.id);
     }
-  };
-
-  const ejecutarSorteoManual = () => {
-    if (participantes.length < 2) {
-      alert('⚠️ Se necesitan al menos 2 participantes para sortear.');
-      return;
-    }
-    ejecutarSorteoAutomatico(participantes);
-    alert('🎲 ¡Sorteo realizado con éxito!');
   };
 
   const enviarMensajeRegalo = async (e) => {
@@ -878,31 +817,21 @@ export default function Home() {
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.25rem' }}>🎲 Estado del Sorteo</h2>
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
-                {sorteoRealizado ? 'El sorteo se ha realizado con éxito.' : 'El sorteo está pendiente o se ejecutará al llegar la fecha.'}
+                El sorteo está activo para todos los participantes.
               </p>
 
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  onClick={ejecutarSorteoManual}
-                  style={{ backgroundColor: '#2E7D32', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+                  onClick={restablecerSorteo}
+                  style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
                 >
-                  {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Iniciar Sorteo Ahora'}
+                  🗑️ Restablecer Sorteo
                 </button>
-
-                {sorteoRealizado && (
-                  <button
-                    type="button"
-                    onClick={restablecerSorteo}
-                    style={{ backgroundColor: '#dc2626', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
-                  >
-                    🗑️ Restablecer Sorteo
-                  </button>
-                )}
               </div>
             </div>
 
-            {sorteoRealizado && participantes.length > 0 && (
+            {participantes.length > 0 && (
               <div style={{ marginTop: '1.5rem', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.75rem' }}>🎁 Asignaciones de Amigos Secretos</h3>
                 <div style={{ overflowX: 'auto' }}>
@@ -1128,92 +1057,75 @@ export default function Home() {
             </div>
           </section>
 
-          {sorteoRealizado && (
-            <section style={{ width: '100%', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC', textAlign: 'center' }}>
-              <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem' }}>
-                🎁 Tu Amigo Secreto
-              </h2>
-              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
-                {cajaAbierta ? '¡Aquí tienes los detalles de la persona a quien le darás tu regalo!' : 'Haz clic en la caja sorpresa para revelar a quién te tocó y qué desea.'}
-              </p>
+          {/* Tarjeta de Amigo Secreto visible permanentemente */}
+          <section style={{ width: '100%', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem' }}>
+              🎁 Tu Amigo Secreto
+            </h2>
+            <div style={{ backgroundColor: '#FAF6F0', border: '1px solid #D4AF37', borderRadius: '1.5rem', padding: '1.5rem', maxWidth: '28rem', margin: '0 auto', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: '1.875rem', display: 'block' }}>🎉</span>
+                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Te tocó regalar a:</p>
+                  <p style={{ fontSize: '1.125rem', fontWeight: 'extrabold', color: '#8B0000' }}>
+                    {amigoSecretoInfo ? amigoSecretoInfo.nombre : 'Cargando asignación...'}
+                  </p>
+                </div>
 
-              <div
-                onClick={() => setCajaAbierta(true)}
-                style={{ cursor: 'pointer', backgroundColor: '#FAF6F0', border: '2px dashed #D4AF37', borderRadius: '1.5rem', padding: '1.5rem', maxWidth: '28rem', margin: '0 auto', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-              >
-                {cajaAbierta ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: '1.875rem', display: 'block' }}>🎉</span>
-                      <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Te tocó regalar a:</p>
-                      <p style={{ fontSize: '1.125rem', fontWeight: 'extrabold', color: '#8B0000' }}>
-                        {amigoSecretoInfo ? amigoSecretoInfo.nombre : 'Cargando...'}
-                      </p>
-                    </div>
+                <div style={{ borderTop: '1px solid #F2E8DC', paddingTop: '0.75rem' }}>
+                  <p style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem', textAlign: 'center' }}>🎁 Los deseos de tu amigo secreto:</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                    {amigoSecretoInfo?.deseos && amigoSecretoInfo.deseos.map((deseoAmigo, idx) => (
+                      <div 
+                        key={idx} 
+                        style={{ minHeight: '10rem', backgroundColor: 'white', border: '1px solid #F2E8DC', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.375rem', overflow: 'hidden' }}
+                      >
+                        {deseoAmigo?.imagen ? (
+                          <>
+                            <div 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setImagenAmpliada(deseoAmigo.imagen);
+                              }}
+                              style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            >
+                              <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.5625rem', fontWeight: 'bold' }}>
+                                🔍 Ver
+                              </div>
+                            </div>
 
-                    <div style={{ borderTop: '1px solid #F2E8DC', paddingTop: '0.75rem' }}>
-                      <p style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem', textAlign: 'center' }}>🎁 Los deseos de tu amigo secreto:</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                        {amigoSecretoInfo?.deseos && amigoSecretoInfo.deseos.map((deseoAmigo, idx) => (
-                          <div 
-                            key={idx} 
-                            style={{ minHeight: '10rem', backgroundColor: 'white', border: '1px solid #F2E8DC', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.375rem', overflow: 'hidden' }}
-                          >
-                            {deseoAmigo?.imagen ? (
-                              <>
-                                <div 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setImagenAmpliada(deseoAmigo.imagen);
-                                  }}
-                                  style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                                >
-                                  <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                  <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.5625rem', fontWeight: 'bold' }}>
-                                    🔍 Ver
-                                  </div>
-                                </div>
-
-                                {deseoAmigo?.detalles && (
-                                  <p style={{ fontSize: '0.5625rem', color: '#374151', fontWeight: 500, textAlign: 'center', padding: '0.125rem', backgroundColor: '#f9fafb', borderRadius: '0.25rem' }}>
-                                    📝 {deseoAmigo.detalles}
-                                  </p>
-                                )}
-
-                                <div style={{ width: '100%', marginTop: '0.25rem' }}>
-                                  {deseoAmigo?.url ? (
-                                    <a
-                                      href={deseoAmigo.url.startsWith('http') ? deseoAmigo.url : `https://${deseoAmigo.url}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      style={{ width: '100%', backgroundColor: '#8B0000', color: 'white', padding: '0.25rem', borderRadius: '0.375rem', fontSize: '0.5625rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
-                                    >
-                                      🛒 Enlace
-                                    </a>
-                                  ) : (
-                                    <span style={{ fontSize: '0.5625rem', color: '#9ca3af', display: 'block', textAlign: 'center' }}>Sin enlace</span>
-                                  )}
-                                </div>
-                              </>
-                            ) : (
-                              <span style={{ fontSize: '0.625rem', color: '#9ca3af', textAlign: 'center', margin: 'auto' }}>Sin opción {idx + 1}</span>
+                            {deseoAmigo?.detalles && (
+                              <p style={{ fontSize: '0.5625rem', color: '#374151', fontWeight: 500, textAlign: 'center', padding: '0.125rem', backgroundColor: '#f9fafb', borderRadius: '0.25rem' }}>
+                                📝 {deseoAmigo.detalles}
+                              </p>
                             )}
-                          </div>
-                        ))}
+
+                            <div style={{ width: '100%', marginTop: '0.25rem' }}>
+                              {deseoAmigo?.url ? (
+                                <a
+                                  href={deseoAmigo.url.startsWith('http') ? deseoAmigo.url : `https://${deseoAmigo.url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ width: '100%', backgroundColor: '#8B0000', color: 'white', padding: '0.25rem', borderRadius: '0.375rem', fontSize: '0.5625rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+                                >
+                                  🛒 Enlace
+                                </a>
+                              ) : (
+                                <span style={{ fontSize: '0.5625rem', color: '#9ca3af', display: 'block', textAlign: 'center' }}>Sin enlace</span>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <span style={{ fontSize: '0.625rem', color: '#9ca3af', textAlign: 'center', margin: 'auto' }}>Sin opción {idx + 1}</span>
+                        )}
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ) : (
-                  <div style={{ textAlign: 'center' }}>
-                    <span style={{ fontSize: '2.25rem', display: 'block', marginBottom: '0.5rem' }}>🎁</span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', textTransform: 'uppercase', backgroundColor: 'white', padding: '0.375rem 0.75rem', borderRadius: '9999px', border: '1px solid #D4AF37' }}>
-                      Abrir Caja Sorpresa ✨
-                    </span>
-                  </div>
-                )}
+                </div>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
 
           <footer style={{ width: '100%', textAlign: 'center', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC' }}>
             <div style={{ display: 'inline-block', backgroundColor: '#FAF6F0', border: '1px solid #D4AF37', color: '#8B0000', fontWeight: 600, fontSize: '0.75rem', padding: '0.375rem 1rem', borderRadius: '9999px', marginBottom: '1rem' }}>
@@ -1411,8 +1323,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Chats flotantes condicionados estrictamente a que el sorteo esté realizado */}
-      {sorteoRealizado && session && (
+      {/* Chats flotantes habilitados permanentemente */}
+      {session && (
         <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
           
           {amigoSecretoInfo && (

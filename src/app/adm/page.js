@@ -14,7 +14,7 @@ export default function AdminPage() {
   const [participantes, setParticipantes] = useState([]);
   const [presupuesto, setPresupuesto] = useState('');
   const [fechaEvento, setFechaEvento] = useState('');
-  const [sorteoRealizado, setSorteoRealizado] = useState(false);
+  const [sorteoRealizado, setSorteoRealizado] = useState(true); // Forzado en true
 
   useEffect(() => {
     verificarAdminYCargar();
@@ -57,8 +57,6 @@ export default function AdminPage() {
     const { data: todos } = await supabase.from('perfiles').select('*');
     if (todos) {
       setParticipantes(todos);
-      const yaSorteado = todos.some(p => p.amigo_secreto_id);
-      if (yaSorteado) setSorteoRealizado(true);
     }
   };
 
@@ -108,7 +106,6 @@ export default function AdminPage() {
         .eq('id', id);
     }
 
-    setSorteoRealizado(true);
     await cargarDatosAdmin();
     alert('🎲 ¡Sorteo realizado correctamente!');
   };
@@ -168,14 +165,14 @@ export default function AdminPage() {
         <section className="bg-white p-6 rounded-3xl shadow-sm border border-[#F2E8DC] text-center">
           <h2 className="text-base font-bold text-[#8B0000] mb-2">🎲 Sorteo del Amigo Secreto</h2>
           <p className="text-xs text-gray-500 mb-4">
-            {sorteoRealizado ? 'El sorteo ya se encuentra ejecutado.' : 'Realiza el sorteo de forma automática para todos los participantes.'}
+            Las asignaciones ya están activas para los participantes.
           </p>
           <button
             type="button"
             onClick={ejecutarSorteo}
             className="bg-[#2E7D32] text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-[#25632A] text-xs"
           >
-            {sorteoRealizado ? '🔄 Re-ejecutar Sorteo' : '🎲 Ejecutar Sorteo Ahora'}
+            🔄 Re-ejecutar Sorteo
           </button>
         </section>
       </div>

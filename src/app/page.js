@@ -55,7 +55,7 @@ export default function Home() {
   // Estado para revelar asignaciones específicas en el Admin con la hojita
   const [reveladosAdmin, setReveladosAdmin] = useState({});
 
-  // Cajita Sorpresa Amigo Secreto
+  // Cajita Sorpresa Amigo Secreto (Desde la tabla dedicada "sorteos")
   const [amigoSecretoInfo, setAmigoSecretoInfo] = useState(null); 
   const [personaQueMeRegalaInfo, setPersonaQueMeRegalaInfo] = useState(null); 
 
@@ -185,60 +185,66 @@ export default function Home() {
     }
   };
 
+  // CONSULTA DIRECTA A LA TABLA DEDICADA "sorteos"
   const cargarPerfil = async (userId) => {
-    const { data } = await supabase
+    const { data: perfilData } = await supabase
       .from('perfiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
 
-    if (data) {
-      setPerfil(data);
-      if (data.deseos) setDeseos(data.deseos);
+    if (perfilData) {
+      setPerfil(perfilData);
+      if (perfilData.deseos) setDeseos(perfilData.deseos);
 
       const { data: todos } = await supabase.from('perfiles').select('*');
-      if (todos) {
-        setParticipantes(todos);
+      if (todos) setParticipantes(todos);
 
-        // Verificamos si tiene asignado un amigo secreto convirtiendo ambos a String por seguridad
-        if (data.amigo_secreto_id) {
-          const amigoEncontrado = todos.find(p => String(p.id).trim() === String(data.amigo_secreto_id).trim());
-          if (amigoEncontrado) {
-            setAmigoSecretoInfo(amigoEncontrado);
-          } else {
-            // Búsqueda directa por si acaso no venía en la lista general
-            const { data: amigoDirecto } = await supabase
-              .from('perfiles')
-              .select('*')
-              .eq('id', data.amigo_secreto_id)
-              .maybeSingle();
-            if (amigoDirecto) setAmigoSecretoInfo(amigoDirecto);
-          }
-        } else {
-          setAmigoSecretoInfo(null);
-        }
+      // Buscamos directamente en la tabla dedicada "sorteos"
+      const { data: sorteoRegistro } = await supabase
+        .from('sorteos')
+        .select('*')
+        .eq('participante_id', userId)
+        .maybeSingle();
 
-        const quienMeRegala = todos.find(p => String(p.amigo_secreto_id).trim() === String(data.id).trim());
-        if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
+      if (sorteoRegistro && sorteoRegistro.amigo_id) {
+        const { data: amigoObj } = await supabase
+          .from('perfiles')
+          .select('*')
+          .eq('id', sorteoRegistro.amigo_id)
+          .maybeSingle();
+
+        if (amigoObj) setAmigoSecretoInfo(amigoObj);
+      } else {
+        setAmigoSecretoInfo(null);
+      }
+
+      // Buscamos quién le regala a este usuario
+      const { data: regalaObj } = await supabase
+        .from('sorteos')
+        .select('*')
+        .eq('amigo_id', userId)
+        .maybeSingle();
+
+      if (regalaObj && regalaObj.participante_id) {
+        const { data: anoniObj } = await supabase
+          .from('perfiles')
+          .select('*')
+          .eq('id', regalaObj.participante_id)
+          .maybeSingle();
+
+        if (anoniObj) setPersonaQueMeRegalaInfo(anoniObj);
       }
     }
   };
 
   const restablecerSorteo = async () => {
-    if (!confirm('⚠️ ¿Estás seguro de restablecer el sorteo? Esto borrará todas las asignaciones actuales.')) {
+    if (!confirm('⚠️ ¿Estás seguro de restablecer el sorteo? Esto borrará todas las asignaciones.')) {
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('perfiles')
-        .update({ amigo_secreto_id: null })
-        .neq('id', '00000000-0000-0000-0000-000000000000');
-
-      if (error) {
-        alert('Error al restablecer el sorteo: ' + error.message);
-        return;
-      }
+      await supabase.from('sorteos').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
       setAmigoSecretoInfo(null);
       setPersonaQueMeRegalaInfo(null);
@@ -830,7 +836,7 @@ export default function Home() {
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.25rem' }}>🎲 Estado del Sorteo</h2>
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
-                El sorteo está activo para todos los participantes.
+                El sorteo está activo mediante la tabla dedicada de sorteos.
               </p>
 
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -843,55 +849,6 @@ export default function Home() {
                 </button>
               </div>
             </div>
-
-            {participantes.length > 0 && (
-              <div style={{ marginTop: '1.5rem', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.75rem' }}>🎁 Asignaciones de Amigos Secretos</h3>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', textAlign: 'left', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid #f3f4f6', color: '#9ca3af', textTransform: 'uppercase', fontSize: '0.625rem' }}>
-                        <th style={{ padding: '0.5rem 0' }}>Participante</th>
-                        <th style={{ padding: '0.5rem 0' }}>Le regala a</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {participantes.map((part) => {
-                        const amigoAsignado = participantes.find(p => p.id === part.amigo_secreto_id);
-                        const esMioParticipante = session && part.id === session.user.id;
-                        const estaRevelado = reveladosAdmin[part.id] === true;
-
-                        return (
-                          <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>
-                            <td style={{ padding: '0.625rem 0', fontWeight: 600, color: '#1f2937' }}>
-                              {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}
-                            </td>
-                            <td style={{ padding: '0.625rem 0', color: '#8B0000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {esMioParticipante && !estaRevelado ? (
-                                <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.6875rem' }}>🔒 Oculto (Tu participación)</span>
-                              ) : (
-                                <span>🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</span>
-                              )}
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setReveladosAdmin(prev => ({ ...prev, [part.id]: !prev[part.id] }));
-                                }}
-                                style={{ backgroundColor: '#FAF6F0', border: '1px solid #D4AF37', borderRadius: '0.375rem', padding: '0.125rem 0.375rem', cursor: 'pointer', fontSize: '0.625rem' }}
-                                title={estaRevelado ? "Ocultar" : "Ver con hojita"}
-                              >
-                                {estaRevelado ? '👁️‍🗨️ Ocultar' : '📄 Ver'}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
           </section>
 
           <section style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #F2E8DC', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -1081,61 +1038,63 @@ export default function Home() {
                   <span style={{ fontSize: '1.875rem', display: 'block' }}>🎉</span>
                   <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Te tocó regalar a:</p>
                   <p style={{ fontSize: '1.125rem', fontWeight: 'extrabold', color: '#8B0000' }}>
-                    {amigoSecretoInfo ? amigoSecretoInfo.nombre : 'Cargando asignación...'}
+                    {amigoSecretoInfo ? amigoSecretoInfo.nombre : '⚠️ Aún no hay asignación en la tabla de sorteos'}
                   </p>
                 </div>
 
-                <div style={{ borderTop: '1px solid #F2E8DC', paddingTop: '0.75rem' }}>
-                  <p style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem', textAlign: 'center' }}>🎁 Los deseos de tu amigo secreto:</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                    {amigoSecretoInfo?.deseos && amigoSecretoInfo.deseos.map((deseoAmigo, idx) => (
-                      <div 
-                        key={idx} 
-                        style={{ minHeight: '10rem', backgroundColor: 'white', border: '1px solid #F2E8DC', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.375rem', overflow: 'hidden' }}
-                      >
-                        {deseoAmigo?.imagen ? (
-                          <>
-                            <div 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setImagenAmpliada(deseoAmigo.imagen);
-                              }}
-                              style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                            >
-                              <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                              <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.5625rem', fontWeight: 'bold' }}>
-                                🔍 Ver
+                {amigoSecretoInfo && (
+                  <div style={{ borderTop: '1px solid #F2E8DC', paddingTop: '0.75rem' }}>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem', textAlign: 'center' }}>🎁 Los deseos de tu amigo secreto:</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                      {amigoSecretoInfo?.deseos && amigoSecretoInfo.deseos.map((deseoAmigo, idx) => (
+                        <div 
+                          key={idx} 
+                          style={{ minHeight: '10rem', backgroundColor: 'white', border: '1px solid #F2E8DC', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0.375rem', overflow: 'hidden' }}
+                        >
+                          {deseoAmigo?.imagen ? (
+                            <>
+                              <div 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setImagenAmpliada(deseoAmigo.imagen);
+                                }}
+                                style={{ width: '100%', height: '4rem', position: 'relative', overflow: 'hidden', borderRadius: '0.5rem', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                              >
+                                <img src={deseoAmigo.imagen} alt="Deseo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.5625rem', fontWeight: 'bold' }}>
+                                  🔍 Ver
+                                </div>
                               </div>
-                            </div>
 
-                            {deseoAmigo?.detalles && (
-                              <p style={{ fontSize: '0.5625rem', color: '#374151', fontWeight: 500, textAlign: 'center', padding: '0.125rem', backgroundColor: '#f9fafb', borderRadius: '0.25rem' }}>
-                                📝 {deseoAmigo.detalles}
-                              </p>
-                            )}
-
-                            <div style={{ width: '100%', marginTop: '0.25rem' }}>
-                              {deseoAmigo?.url ? (
-                                <a
-                                  href={deseoAmigo.url.startsWith('http') ? deseoAmigo.url : `https://${deseoAmigo.url}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{ width: '100%', backgroundColor: '#8B0000', color: 'white', padding: '0.25rem', borderRadius: '0.375rem', fontSize: '0.5625rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
-                                >
-                                  🛒 Enlace
-                                </a>
-                              ) : (
-                                <span style={{ fontSize: '0.5625rem', color: '#9ca3af', display: 'block', textAlign: 'center' }}>Sin enlace</span>
+                              {deseoAmigo?.detalles && (
+                                <p style={{ fontSize: '0.5625rem', color: '#374151', fontWeight: 500, textAlign: 'center', padding: '0.125rem', backgroundColor: '#f9fafb', borderRadius: '0.25rem' }}>
+                                  📝 {deseoAmigo.detalles}
+                                </p>
                               )}
-                            </div>
-                          </>
-                        ) : (
-                          <span style={{ fontSize: '0.625rem', color: '#9ca3af', textAlign: 'center', margin: 'auto' }}>Sin opción {idx + 1}</span>
-                        )}
-                      </div>
-                    ))}
+
+                              <div style={{ width: '100%', marginTop: '0.25rem' }}>
+                                {deseoAmigo?.url ? (
+                                  <a
+                                    href={deseoAmigo.url.startsWith('http') ? deseoAmigo.url : `https://${deseoAmigo.url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ width: '100%', backgroundColor: '#8B0000', color: 'white', padding: '0.25rem', borderRadius: '0.375rem', fontSize: '0.5625rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+                                  >
+                                    🛒 Enlace
+                                  </a>
+                                ) : (
+                                  <span style={{ fontSize: '0.5625rem', color: '#9ca3af', display: 'block', textAlign: 'center' }}>Sin enlace</span>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <span style={{ fontSize: '0.625rem', color: '#9ca3af', textAlign: 'center', margin: 'auto' }}>Sin opción {idx + 1}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </section>

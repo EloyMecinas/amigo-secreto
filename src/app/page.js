@@ -55,7 +55,7 @@ export default function Home() {
   // Estado para revelar asignaciones específicas en el Admin con la hojita
   const [reveladosAdmin, setReveladosAdmin] = useState({});
 
-  // Cajita Sorpresa Amigo Secreto (Siempre abierta por defecto)
+  // Cajita Sorpresa Amigo Secreto
   const [amigoSecretoInfo, setAmigoSecretoInfo] = useState(null); 
   const [personaQueMeRegalaInfo, setPersonaQueMeRegalaInfo] = useState(null); 
 
@@ -202,7 +202,16 @@ export default function Home() {
 
         if (data.amigo_secreto_id) {
           const amigo = todos.find(p => p.id === data.amigo_secreto_id);
-          if (amigo) setAmigoSecretoInfo(amigo);
+          if (amigo) {
+            setAmigoSecretoInfo(amigo);
+          } else {
+            const { data: amigoDirecto } = await supabase
+              .from('perfiles')
+              .select('*')
+              .eq('id', data.amigo_secreto_id)
+              .maybeSingle();
+            if (amigoDirecto) setAmigoSecretoInfo(amigoDirecto);
+          }
         }
 
         const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
@@ -1057,7 +1066,7 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Tarjeta de Amigo Secreto visible permanentemente */}
+          {/* Tarjeta de Amigo Secreto */}
           <section style={{ width: '100%', backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #F2E8DC', textAlign: 'center' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#8B0000', marginBottom: '0.5rem' }}>
               🎁 Tu Amigo Secreto

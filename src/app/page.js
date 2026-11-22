@@ -117,6 +117,8 @@ export default function Home() {
       if (session) {
         await cargarPerfil(session.user.id);
         await cargarMensajes();
+      } else {
+        await cargarParticipantes();
       }
       setLoading(false);
     };
@@ -176,6 +178,49 @@ export default function Home() {
   const cargarMensajes = async () => {
     const { data } = await supabase.from('mensajes_chat').select('*');
     if (data) setMensajesDB(data);
+  };
+
+  const cargarParticipantes = async () => {
+    const { data } = await supabase.from('perfiles').select('*');
+    if (data) {
+      setParticipantes(data);
+      const yaSorteado = data.some(p => p.amigo_secreto_id !== null && p.amigo_secreto_id !== undefined);
+      if (yaSorteado) {
+        setSorteoRealizado(true);
+      }
+    }
+  };
+
+  const cargarPerfil = async (userId) => {
+    const { data } = await supabase
+      .from('perfiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (data) {
+      setPerfil(data);
+      if (data.deseos) setDeseos(data.deseos);
+
+      const { data: todos } = await supabase.from('perfiles').select('*');
+      if (todos) {
+        setParticipantes(todos);
+        
+        // Detecta automáticamente si ya se realizó el sorteo si alguien tiene amigo asignado
+        const yaSorteado = todos.some(p => p.amigo_secreto_id !== null && p.amigo_secreto_id !== undefined);
+        if (yaSorteado) {
+          setSorteoRealizado(true);
+        }
+
+        if (data.amigo_secreto_id) {
+          const amigo = todos.find(p => p.id === data.amigo_secreto_id);
+          if (amigo) setAmigoSecretoInfo(amigo);
+        }
+
+        const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
+        if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
+      }
+    }
   };
 
   const ejecutarSorteoAutomatico = async (listaParticipantes) => {
@@ -286,43 +331,6 @@ export default function Home() {
 
     return () => clearInterval(intervalo);
   }, [fechaEvento, participantes, sorteoRealizado]);
-
-  const cargarPerfil = async (userId) => {
-    const { data } = await supabase
-      .from('perfiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (data) {
-      setPerfil(data);
-      if (data.deseos) setDeseos(data.deseos);
-
-      const { data: todos } = await supabase.from('perfiles').select('*');
-      if (todos) {
-        setParticipantes(todos);
-        const yaSorteado = todos.some(p => p.amigo_secreto_id);
-        if (yaSorteado) setSorteoRealizado(true);
-
-        if (data.amigo_secreto_id) {
-          const amigo = todos.find(p => p.id === data.amigo_secreto_id);
-          if (amigo) setAmigoSecretoInfo(amigo);
-        }
-
-        const quienMeRegala = todos.find(p => p.amigo_secreto_id === data.id);
-        if (quienMeRegala) setPersonaQueMeRegalaInfo(quienMeRegala);
-      }
-    }
-  };
-
-  const cargarParticipantes = async () => {
-    const { data } = await supabase.from('perfiles').select('*');
-    if (data) {
-      setParticipantes(data);
-      const yaSorteado = data.some(p => p.amigo_secreto_id);
-      if (yaSorteado) setSorteoRealizado(true);
-    }
-  };
 
   const guardarConfiguracionEvento = async (e) => {
     e.preventDefault();
@@ -1053,7 +1061,6 @@ export default function Home() {
               Mis Deseos
             </h2>
 
-            {/* Cuadros de deseos con ajuste de imagen mejorado (object-fit: contain y fondo neutro para que se vea impecable) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
               {deseos.map((deseo, idx) => (
                 <div

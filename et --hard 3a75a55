@@ -1,0 +1,62 @@
+[33mcommit 3a75a5512e787d48f00e0c2dc7dd947d6d04fc93[m
+Author: D Mecinas <eloy.mecinas@gmail.com>
+Date:   Mon Oct 19 16:26:35 2026 -0500
+
+    Ajuste de object-fit contain para imagenes de deseos en los cuadros
+
+[1mdiff --git a/src/app/page.js b/src/app/page.js[m
+[1mindex 427c649..87a3e00 100644[m
+[1m--- a/src/app/page.js[m
+[1m+++ b/src/app/page.js[m
+[36m@@ -53,6 +53,9 @@[m [mexport default function Home() {[m
+   const [modalVerParticipanteAbierto, setModalVerParticipanteAbierto] = useState(false);[m
+   const [participanteSeleccionadoInfo, setParticipanteSeleccionadoInfo] = useState(null);[m
+ [m
+[32m+[m[32m  // Estado para revelar asignaciones específicas en el Admin con la hojita[m
+[32m+[m[32m  const [reveladosAdmin, setReveladosAdmin] = useState({});[m
+[32m+[m
+   // Cajita Sorpresa Amigo Secreto[m
+   const [cajaAbierta, setCajaAbierta] = useState(false);[m
+   const [amigoSecretoInfo, setAmigoSecretoInfo] = useState(null); [m
+[36m@@ -231,6 +234,7 @@[m [mexport default function Home() {[m
+       setCajaAbierta(false);[m
+       setChatRegaloAbierto(false);[m
+       setChatAnoniAbierto(false);[m
+[32m+[m[32m      setReveladosAdmin({});[m
+ [m
+       await cargarParticipantes();[m
+       if (session) await cargarPerfil(session.user.id);[m
+[36m@@ -744,7 +748,6 @@[m [mexport default function Home() {[m
+               </>[m
+             )}[m
+ [m
+[31m-            {/* Checkbox Recordar Cuenta con alineación armoniosa */}[m
+             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', fontSize: '0.75rem', color: '#4b5563', marginTop: '0.25rem' }}>[m
+               <input[m
+                 type="checkbox"[m
+[36m@@ -905,12 +908,32 @@[m [mexport default function Home() {[m
+                     <tbody>[m
+                       {participantes.map((part) => {[m
+                         const amigoAsignado = participantes.find(p => p.id === part.amigo_secreto_id);[m
+[32m+[m[32m                        const esMioParticipante = session && part.id === session.user.id;[m
+[32m+[m[32m                        const estaRevelado = reveladosAdmin[part.id] === true;[m
+[32m+[m
+                         return ([m
+                           <tr key={part.id} style={{ borderBottom: '1px solid #f9fafb' }}>[m
+                             <td style={{ padding: '0.625rem 0', fontWeight: 600, color: '#1f2937' }}>[m
+                               {part.nombre} {part.es_admin && <span style={{ fontSize: '0.625rem', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>Admin</span>}[m
+                             </td>[m
+[31m-                            <td style={{ padding: '0.625rem 0', color: '#8B0000', fontWeight: 'bold' }}>🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</td>[m
+[32m+[m[32m                            <td style={{ padding: '0.625rem 0', color: '#8B0000', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>[m
+[32m+[m[32m                              {esMioParticipante && !estaRevelado ? ([m
+[32m+[m[32m                                <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.6875rem' }}>🔒 Oculto (Tu participación)</span>[m
+[32m+[m[32m                              ) : ([m
+[32m+[m[32m                                <span>🎁 {amigoAsignado ? amigoAsignado.nombre : 'Pendiente'}</span>[m
+[32m+[m[32m                              )}[m
+[32m+[m
+[32m+[m[32m                              <button[m
+[32m+[m[32m                                type="button"[m
+[32m+[m[32m                                onClick={() => {[m
+[32m+[m[32m                                  setReveladosAdmin(prev => ({ ...prev, [part.id]: !prev[part.id] }));[m
+[32m+[m[32m                                }}[m
+[32m+[m[32m                                style={{ backgroundColor: '#FAF6F0', border: '1px solid #D4AF37', borderRadius: '0.375rem', padding: '0.125rem 0.375rem', cursor: 'pointer', fontSize: '0.625

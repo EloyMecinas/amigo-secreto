@@ -19,7 +19,7 @@ export default function Home() {
   const [participantes, setParticipantes] = useState([]);
   const [sorteoRealizado, setSorteoRealizado] = useState(false);
 
-  // Cronómetro
+  // Tiempo
   const [tiempoRestante, setTiempoRestante] = useState({
     dias: '00',
     horas: '00',
